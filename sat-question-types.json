@@ -1,0 +1,387 @@
+{
+  "sat_question_types": {
+    "reading_and_writing": {
+      "section": "Reading and Writing",
+      "domains": [
+        {
+          "domain": "Information and Ideas",
+          "skills": [
+            {
+              "skill": "Central Ideas and Details",
+              "khan_academy_path": "SAT Reading and Writing > Information and Ideas > Central Ideas and Details",
+              "description": "Identify the main idea of a passage or the key details that support it.",
+              "common_traps": [
+                "Choosing a detail instead of the central idea",
+                "Picking an answer that is too broad or too narrow"
+              ]
+            },
+            {
+              "skill": "Inferences",
+              "khan_academy_path": "SAT Reading and Writing > Information and Ideas > Inferences",
+              "description": "Draw logical conclusions or inferences based on textual evidence. Includes 'most logically completes the text' questions.",
+              "common_traps": [
+                "Going one step beyond what the text supports",
+                "Contradicting a key detail in the passage",
+                "Partially capturing the logic but distorting one component"
+              ]
+            },
+            {
+              "skill": "Command of Evidence (Textual)",
+              "khan_academy_path": "SAT Reading and Writing > Information and Ideas > Command of Evidence > Textual Evidence",
+              "description": "Select the quotation that best supports a stated claim. The correct quote must satisfy ALL parts of the claim simultaneously.",
+              "common_traps": [
+                "Choosing a quote that only supports half the claim",
+                "Picking a thematically related quote that misses the specific point"
+              ]
+            },
+            {
+              "skill": "Command of Evidence (Quantitative)",
+              "khan_academy_path": "SAT Reading and Writing > Information and Ideas > Command of Evidence > Quantitative Evidence",
+              "description": "Interpret data from graphs, tables, or charts and select evidence that supports or weakens a claim.",
+              "common_traps": [
+                "Misreading axis labels or scale",
+                "Choosing data that supports a related but different claim"
+              ]
+            }
+          ]
+        },
+        {
+          "domain": "Craft and Structure",
+          "skills": [
+            {
+              "skill": "Words in Context",
+              "khan_academy_path": "SAT Reading and Writing > Craft and Structure > Words in Context",
+              "description": "Choose the most logical and precise word or phrase to complete a sentence. Heavily dependent on identifying logical relationships (contrast, cause-effect, support) using signal words.",
+              "common_traps": [
+                "Picking a word that sounds plausible in isolation rather than tracking the sentence logic",
+                "Missing contrast signals like 'but,' 'however,' 'in contrast to,' 'although'",
+                "Missing support signals like 'because,' 'similarly,' 'therefore'"
+              ]
+            },
+            {
+              "skill": "Text Structure and Purpose",
+              "khan_academy_path": "SAT Reading and Writing > Craft and Structure > Text Structure and Purpose",
+              "description": "Identify why an author included a specific detail or describe the overall structure of a passage. Asks 'why did the author include this?' not 'what does this say?'",
+              "common_traps": [
+                "Grabbing a true detail and misattributing its purpose",
+                "Assuming a hypothesis was confirmed when it was actually contradicted",
+                "Inventing a claim the text does not support"
+              ]
+            },
+            {
+              "skill": "Cross-Text Connections",
+              "khan_academy_path": "SAT Reading and Writing > Craft and Structure > Cross-Text Connections",
+              "description": "Compare two related passages and identify how one author would respond to the other, or how the texts relate.",
+              "common_traps": [
+                "Confusing which author made which argument",
+                "Overstating agreement or disagreement between the texts"
+              ]
+            }
+          ]
+        },
+        {
+          "domain": "Expression of Ideas",
+          "skills": [
+            {
+              "skill": "Rhetorical Synthesis",
+              "khan_academy_path": "SAT Reading and Writing > Expression of Ideas > Rhetorical Synthesis",
+              "description": "Given bullet-point notes, select the sentence that best accomplishes a specific stated goal. Must anchor to the exact stated goal.",
+              "common_traps": [
+                "Using irrelevant details from the notes that don't serve the stated goal",
+                "Getting the logic backwards (e.g. defining a term instead of classifying something)",
+                "Vague answers that gesture at the goal but never complete it"
+              ]
+            },
+            {
+              "skill": "Transitions",
+              "khan_academy_path": "SAT Reading and Writing > Expression of Ideas > Transitions",
+              "description": "Choose the transition word or phrase that best connects two sentences or clauses. Identify the logical relationship first (contrast, cause-effect, example, sequence, restatement).",
+              "common_traps": [
+                "Picking a transition that sounds smooth but misrepresents the logical relationship",
+                "Confusing 'for instance' (example) with 'in other words' (restatement)",
+                "Confusing 'subsequently' (sequence) with 'conversely' (contrast)"
+              ]
+            }
+          ]
+        },
+        {
+          "domain": "Standard English Conventions",
+          "skills": [
+            {
+              "skill": "Boundaries",
+              "khan_academy_path": "SAT Reading and Writing > Standard English Conventions > Boundaries",
+              "description": "Use correct punctuation to join or separate clauses: periods, semicolons, colons, commas, and dashes. Core rule: two independent clauses need a semicolon, period, or comma + coordinating conjunction.",
+              "common_traps": [
+                "Comma splice: using a comma alone to join two independent clauses",
+                "Run-on: no punctuation between two independent clauses",
+                "Using a comma instead of a colon before an explanation or list",
+                "Misusing 'its' vs 'it's' (possessive vs contraction)",
+                "Using semicolon + however + comma when what follows is not an independent clause"
+              ],
+              "key_rules": [
+                "Colon: introduces an explanation, list, or elaboration; must be preceded by a complete independent clause",
+                "Semicolon: joins two independent clauses without a conjunction",
+                "Comma + FANBOYS: joins two independent clauses with a coordinating conjunction",
+                "its = possessive pronoun (no apostrophe); it's = it is (contraction)"
+              ]
+            },
+            {
+              "skill": "Form, Structure, and Sense",
+              "khan_academy_path": "SAT Reading and Writing > Standard English Conventions > Form, Structure, and Sense",
+              "description": "Correct grammar errors including subject-verb agreement, pronoun agreement, verb tense, and modifier placement.",
+              "common_traps": [
+                "Long interrupting phrases that hide the true subject",
+                "Plural subject mistaken for singular due to nearby singular nouns",
+                "Possessive apostrophes added to plain plural nouns",
+                "Wrong verb tense that doesn't match the sentence's time frame"
+              ],
+              "key_rules": [
+                "Strip interrupting phrases to find the true subject before checking verb agreement",
+                "Plural subjects take plural verbs regardless of what appears nearby",
+                "Only add possessive apostrophe if the noun actually owns something in the sentence"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "math": {
+      "section": "Math",
+      "domains": [
+        {
+          "domain": "Algebra",
+          "skills": [
+            {
+              "skill": "Linear Equations in One Variable",
+              "khan_academy_path": "SAT Math > Algebra > Linear Equations in One Variable",
+              "description": "Solve and interpret linear equations with one unknown.",
+              "common_traps": [
+                "Arithmetic errors when isolating the variable",
+                "Misinterpreting what the question is asking for (e.g. solving for x when asked for 2x)"
+              ]
+            },
+            {
+              "skill": "Linear Equations in Two Variables",
+              "khan_academy_path": "SAT Math > Algebra > Linear Equations in Two Variables",
+              "description": "Build, solve, and interpret linear equations with two variables. Includes finding intercepts, slope, and interpreting constants in context.",
+              "common_traps": [
+                "Plugging in x and y coordinates backwards when finding intercepts",
+                "Sign errors when distributing slope through a point",
+                "Misinterpreting the constant (b) in y = mx + b: it's the value of y when x = 0",
+                "Confusing what the slope vs. the constant represents in a real-world context"
+              ],
+              "key_rules": [
+                "Always rewrite in y = mx + b form before interpreting",
+                "The constant b = value of y when x = 0 (the 'starting amount' or 'leftover')",
+                "To find y-intercept: set x = 0; to find x-intercept: set y = 0"
+              ]
+            },
+            {
+              "skill": "Linear Inequalities in One or Two Variables",
+              "khan_academy_path": "SAT Math > Algebra > Linear Inequalities in One or Two Variables",
+              "description": "Solve and interpret inequalities; identify solution regions on a number line or coordinate plane.",
+              "common_traps": [
+                "Forgetting to flip the inequality sign when multiplying/dividing by a negative",
+                "Misidentifying shaded regions on a graph"
+              ]
+            },
+            {
+              "skill": "Systems of Linear Equations in Two Variables",
+              "khan_academy_path": "SAT Math > Algebra > Systems of Linear Equations in Two Variables",
+              "description": "Solve systems by substitution or elimination; determine when systems have one, zero, or infinite solutions.",
+              "common_traps": [
+                "Forgetting to simplify equations before comparing coefficients",
+                "No solution condition: matching coefficients on variables but different constants (parallel lines)",
+                "Infinite solutions condition: equations are identical (same line)"
+              ],
+              "key_rules": [
+                "No solution = parallel lines = same variable coefficients, different constants",
+                "Infinite solutions = same line = equations are multiples of each other",
+                "Always put both equations in the same standard form before comparing"
+              ]
+            }
+          ]
+        },
+        {
+          "domain": "Advanced Math",
+          "skills": [
+            {
+              "skill": "Equivalent Expressions",
+              "khan_academy_path": "SAT Math > Advanced Math > Equivalent Expressions",
+              "description": "Rewrite algebraic expressions in equivalent forms, including combining rational expressions and factoring.",
+              "common_traps": [
+                "Forgetting to find a common denominator before adding fractions with variables",
+                "Treating a whole term as already having the needed denominator",
+                "Arithmetic errors when distributing after finding common denominator"
+              ],
+              "key_rules": [
+                "To add a/b + c, rewrite c as (c*b)/b first to get common denominator",
+                "Factor out common terms in numerator after combining"
+              ]
+            },
+            {
+              "skill": "Nonlinear Equations in One Variable and Systems of Equations",
+              "khan_academy_path": "SAT Math > Advanced Math > Nonlinear Equations in One Variable",
+              "description": "Solve quadratic and other nonlinear equations; interpret solutions in context.",
+              "common_traps": [
+                "Forgetting to check for extraneous solutions",
+                "Using the quadratic formula incorrectly (sign errors under the radical)"
+              ]
+            },
+            {
+              "skill": "Nonlinear Functions",
+              "khan_academy_path": "SAT Math > Advanced Math > Nonlinear Functions",
+              "description": "Interpret and rewrite exponential, quadratic, and other nonlinear functions. Includes rewriting exponential forms using exponent rules.",
+              "common_traps": [
+                "Confusing (a^m)^n = a^(mn) with a^m * a^n = a^(m+n)",
+                "Not recognizing (1 + p/100) as a growth rate multiplier",
+                "Forgetting that x/4 exponent means taking the 1/4 power of the base"
+              ],
+              "key_rules": [
+                "(a^m)^n = a^(mn): use this to match exponential forms",
+                "(1 + p/100)^x is the standard compound growth form",
+                "To match two exponential forms, equate the bases after making exponents identical"
+              ]
+            }
+          ]
+        },
+        {
+          "domain": "Problem-Solving and Data Analysis",
+          "skills": [
+            {
+              "skill": "Percentages",
+              "khan_academy_path": "SAT Math > Problem-Solving and Data Analysis > Percentages",
+              "description": "Calculate percent change, percent of a total, and interpret percent language precisely.",
+              "common_traps": [
+                "'Increased by X%' vs 'increased to X%': 'by' means original + X%, 'to' means the result IS X% of original",
+                "Forgetting to add the original when calculating 'increased by'",
+                "Converting percentages to decimals incorrectly"
+              ],
+              "key_rules": [
+                "Increased BY X%: new = original × (1 + X/100)",
+                "Increased TO X%: new = original × (X/100)",
+                "Percent change = (new - old) / old × 100"
+              ]
+            },
+            {
+              "skill": "Ratios, Rates, and Proportional Relationships",
+              "khan_academy_path": "SAT Math > Problem-Solving and Data Analysis > Ratios, Rates, and Proportional Relationships",
+              "description": "Set up and solve proportions; interpret unit rates in context.",
+              "common_traps": [
+                "Confusing a ratio of sides with a ratio of areas (area scales as the square of side ratio)",
+                "Setting up the proportion with mismatched units"
+              ],
+              "key_rules": [
+                "If sides scale by factor k, areas scale by k²",
+                "Always label units when setting up a proportion to catch mismatches"
+              ]
+            },
+            {
+              "skill": "Two-Variable Data (Scatterplots)",
+              "khan_academy_path": "SAT Math > Problem-Solving and Data Analysis > Two-Variable Data",
+              "description": "Interpret scatterplots, lines of best fit, and apply transformations to data sets.",
+              "common_traps": [
+                "When multiplying all y-values by a constant, forgetting to scale both the slope AND the y-intercept",
+                "When adding a constant to all y-values, forgetting that only the intercept shifts (slope unchanged)",
+                "Misreading the y-intercept or slope from a graph"
+              ],
+              "key_rules": [
+                "Multiply all y by k: new slope = k × old slope; new intercept = k × old intercept",
+                "Add constant c to all y: new intercept = old intercept + c; slope unchanged"
+              ]
+            },
+            {
+              "skill": "One-Variable Data (Distributions and Measures)",
+              "khan_academy_path": "SAT Math > Problem-Solving and Data Analysis > One-Variable Data",
+              "description": "Interpret mean, median, mode, range, and standard deviation; understand how changes to data affect these measures.",
+              "common_traps": [
+                "Confusing mean with median, especially in skewed distributions",
+                "Misidentifying the effect of an outlier on mean vs. median"
+              ]
+            },
+            {
+              "skill": "Probability and Conditional Probability",
+              "khan_academy_path": "SAT Math > Problem-Solving and Data Analysis > Probability and Conditional Probability",
+              "description": "Calculate basic and conditional probabilities from tables or descriptions.",
+              "common_traps": [
+                "Using the total population instead of the conditional subgroup as the denominator",
+                "Confusing P(A|B) with P(B|A)"
+              ]
+            },
+            {
+              "skill": "Inference from Sample Statistics and Margin of Error",
+              "khan_academy_path": "SAT Math > Problem-Solving and Data Analysis > Inference from Sample Statistics",
+              "description": "Evaluate whether sample statistics can be generalized to a population; interpret margin of error.",
+              "common_traps": [
+                "Overgeneralizing from a non-random or non-representative sample",
+                "Confusing margin of error with the sample statistic itself"
+              ]
+            },
+            {
+              "skill": "Evaluating Statistical Claims",
+              "khan_academy_path": "SAT Math > Problem-Solving and Data Analysis > Evaluating Statistical Claims",
+              "description": "Assess whether a conclusion is supported by data; distinguish correlation from causation.",
+              "common_traps": [
+                "Assuming causation from a correlation",
+                "Accepting a conclusion that goes beyond what the data supports"
+              ]
+            }
+          ]
+        },
+        {
+          "domain": "Geometry and Trigonometry",
+          "skills": [
+            {
+              "skill": "Area and Volume",
+              "khan_academy_path": "SAT Math > Geometry and Trigonometry > Area and Volume",
+              "description": "Calculate area and surface area of 2D shapes and volume of 3D shapes.",
+              "common_traps": [
+                "Forgetting to subtract missing faces (e.g. a lidless box has 5 faces, not 6)",
+                "Confusing area formula with volume formula",
+                "Using diameter instead of radius in circle formulas"
+              ],
+              "key_rules": [
+                "Surface area: identify all faces, check for missing ones, sum their areas",
+                "Circle area = πr²; circumference = 2πr (r = radius, not diameter)"
+              ]
+            },
+            {
+              "skill": "Lines, Angles, and Triangles",
+              "khan_academy_path": "SAT Math > Geometry and Trigonometry > Lines, Angles, and Triangles",
+              "description": "Apply properties of parallel lines, triangle similarity/congruence, Pythagorean theorem, and special triangles.",
+              "common_traps": [
+                "Forgetting to use the Pythagorean theorem to find a missing side before setting up ratios",
+                "Setting up similarity ratios with non-corresponding sides",
+                "Forgetting that the hypotenuse is the side across from the right angle",
+                "In circles: forgetting that two radii to points on the circle form an isoceles triangle"
+              ],
+              "key_rules": [
+                "Similar triangles: identify shared angles first, then set up ratios of corresponding sides",
+                "When the right angle is at the center of a circle with both legs as radii: AB = r√2",
+                "Distance formula to find radius: r = √((x2-x1)² + (y2-y1)²)"
+              ]
+            },
+            {
+              "skill": "Right Triangles and Trigonometry",
+              "khan_academy_path": "SAT Math > Geometry and Trigonometry > Right Triangles and Trigonometry",
+              "description": "Apply sine, cosine, and tangent ratios; use special right triangles (30-60-90, 45-45-90).",
+              "common_traps": [
+                "Mixing up which side is opposite vs. adjacent",
+                "Forgetting the complementary angle identity: sin(x) = cos(90-x)"
+              ]
+            },
+            {
+              "skill": "Circles",
+              "khan_academy_path": "SAT Math > Geometry and Trigonometry > Circles",
+              "description": "Work with arc length, sector area, central angles, inscribed angles, and circle equations.",
+              "common_traps": [
+                "Confusing central angle with inscribed angle (inscribed = half the central for same arc)",
+                "Using diameter instead of radius in the circle equation (x-h)² + (y-k)² = r²"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

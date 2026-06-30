@@ -20,10 +20,10 @@
 // by Firestore rules on the server, not by keeping these values secret.
 
 const FIREBASE_CONFIG = {
-    apiKey:            "REPLACE_WITH_YOUR_API_KEY",
-    authDomain:        "REPLACE_WITH_YOUR_PROJECT_ID.firebaseapp.com",
-    projectId:         "REPLACE_WITH_YOUR_PROJECT_ID",
-    storageBucket:     "REPLACE_WITH_YOUR_PROJECT_ID.appspot.com",
-    messagingSenderId: "REPLACE_WITH_YOUR_MESSAGING_SENDER_ID",
-    appId:             "REPLACE_WITH_YOUR_APP_ID"
+    apiKey:            "AIzaSyDTrSfD3zNS9WeWmgOr1cgWDlLSftkaoBc",
+    authDomain:        "sat-prep-tracker.firebaseapp.com",
+    projectId:         "sat-prep-tracker",
+    storageBucket:     "sat-prep-tracker.firebasestorage.app",
+    messagingSenderId: "1071899104571",
+    appId:             "1:1071899104571:web:ac2c0b3624a75646e7d31e"
 };

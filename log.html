@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>SAT Prep — Log Session</title>
+
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon"             type="image/png" href="Logo1.png">
+    <link rel="apple-touch-icon"                  href="Logo1.png">
+    <meta name="theme-color"        content="#1e1e1e">
+    <meta name="apple-mobile-web-app-capable"           content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style"  content="black-translucent">
+    <meta name="apple-mobile-web-app-title"             content="SAT Prep">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Libre+Baskerville:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+
+    <!-- Shared design system -->
+    <link rel="stylesheet" href="app.css">
+
+    <!-- Page-specific styles -->
+    <style>
+        /* ── Date + time row ── */
+        .date-time-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        @media (max-width: 359px) { .date-time-row { grid-template-columns: 1fr; } }
+
+        /* ── Shared input appearance ── */
+        input[type="date"],
+        input[type="time"] {
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
+            letter-spacing: -0.03em;
+            color: var(--dark);
+            background: var(--off-white);
+            border: 1.5px solid transparent;
+            border-radius: 0.75rem;
+            padding: 1rem 1.25rem;
+            outline: none;
+            width: 100%;
+            cursor: pointer;
+            transition: border-color 0.15s;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+        input[type="date"]:focus, input[type="time"]:focus { border-color: var(--dark); background: var(--white); }
+        input[type="date"]::-webkit-calendar-picker-indicator,
+        input[type="time"]::-webkit-calendar-picker-indicator { opacity: 0.4; cursor: pointer; }
+
+        /* ── Duration ── */
+        .duration-row  { display: flex; align-items: center; gap: 0.75rem; }
+        .duration-unit { display: flex; align-items: center; gap: 0.5rem; flex: 1; }
+
+        .duration-input {
+            font-family: 'Inter', sans-serif;
+            font-size: clamp(1.75rem, 5vw, 2.5rem);
+            font-weight: 300;
+            letter-spacing: -0.06em;
+            color: var(--dark);
+            background: var(--off-white);
+            border: 1.5px solid transparent;
+            border-radius: 0.75rem;
+            padding: 1rem 1.25rem;
+            width: 100%;
+            outline: none;
+            text-align: center;
+            transition: border-color 0.15s;
+            -moz-appearance: textfield;
+            appearance: textfield;
+        }
+        .duration-input::-webkit-inner-spin-button,
+        .duration-input::-webkit-outer-spin-button { display: none; }
+        .duration-input:focus { border-color: var(--dark); background: var(--white); }
+
+        .duration-sep {
+            font-size: clamp(1.5rem, 4vw, 2.25rem);
+            font-weight: 300;
+            letter-spacing: -0.06em;
+            color: var(--gray);
+            flex-shrink: 0;
+        }
+        .unit-label {
+            font-size: 0.8125rem;
+            font-weight: 500;
+            letter-spacing: -0.02em;
+            color: var(--gray-text);
+            flex-shrink: 0;
+            min-width: 1.75rem;
+        }
+
+        /* ── Chips ── */
+        .chips { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.25rem; }
+        .chip {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 500;
+            letter-spacing: -0.01em;
+            padding: 0.4375rem 0.875rem;
+            border-radius: 6.25rem;
+            border: 1.5px solid var(--gray);
+            background: var(--white);
+            color: var(--dark);
+            cursor: pointer;
+            transition: background 0.12s, border-color 0.12s, color 0.12s;
+            min-height: 3rem;
+            display: inline-flex;
+            align-items: center;
+        }
+        @media (hover: hover) and (pointer: fine) { .chip:hover { background: var(--dark); border-color: var(--dark); color: var(--white); } }
+
+        /* ── Recent sessions ── */
+        .recent-list { display: flex; flex-direction: column; }
+        .recent-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--off-white);
+        }
+        .recent-row:last-child { border-bottom: none; }
+        .recent-date { font-size: 0.875rem; font-weight: 500; letter-spacing: -0.03em; color: var(--dark); }
+        .recent-time { font-family: 'Libre Baskerville', serif; font-style: italic; font-size: 0.75rem; color: var(--gray-text); margin-top: 0.125rem; }
+        .recent-duration { font-size: 0.875rem; font-weight: 500; letter-spacing: -0.03em; color: var(--dark); }
+
+        .see-all {
+            display: inline-block;
+            margin-top: 1.5rem;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            letter-spacing: -0.02em;
+            color: var(--dark);
+            text-decoration: none;
+            opacity: 0.5;
+            transition: opacity 0.15s;
+        }
+        @media (hover: hover) and (pointer: fine) { .see-all:hover { opacity: 1; } }
+
+        /* ── Session score ── */
+        .score-row { display: flex; align-items: center; gap: 0.625rem; }
+        .score-input {
+            font-family: 'Inter', sans-serif;
+            font-size: clamp(1.5rem, 4vw, 2rem);
+            font-weight: 300;
+            letter-spacing: -0.06em;
+            color: var(--dark);
+            background: var(--off-white);
+            border: 1.5px solid transparent;
+            border-radius: 0.75rem;
+            padding: 0.75rem 1rem;
+            width: 5.375rem;
+            outline: none;
+            text-align: center;
+            transition: border-color 0.15s;
+            -moz-appearance: textfield;
+            appearance: textfield;
+        }
+        .score-input::-webkit-inner-spin-button,
+        .score-input::-webkit-outer-spin-button { display: none; }
+        .score-input:focus { border-color: var(--dark); background: var(--white); }
+        .score-max  { font-size: 0.875rem; font-weight: 400; letter-spacing: -0.02em; color: var(--gray); }
+        .score-hint { font-family: 'Libre Baskerville', serif; font-style: italic; font-size: 0.75rem; color: var(--gray-text); margin-top: 0.375rem; }
+        .recent-score { font-size: 0.6875rem; font-weight: 600; letter-spacing: -0.01em; color: #4A8C6E; margin-left: 0.5rem; }
+    </style>
+</head>
+<body>
+
+<!-- Top nav -->
+<nav class="top-nav">
+    <a href="home.html" class="brand">SAT Prep</a>
+    <div class="nav-pills">
+        <a href="home.html"         class="nav-pill">Home</a>
+        <a href="log.html"          class="nav-pill active">Log Session</a>
+        <a href="test.html"         class="nav-pill">Practice Tests</a>
+        <a href="test-history.html" class="nav-pill">Test History</a>
+        <a href="history.html"      class="nav-pill">Study History</a>
+        <a href="sync.html"         class="nav-pill">Sync</a>
+    </div>
+</nav>
+
+<!-- Bottom nav (mobile) -->
+<nav class="bottom-nav" aria-label="Primary navigation">
+    <a href="home.html" class="bn-item" aria-label="Home">
+        <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 10.5L12 3l9 7.5V21a1 1 0 01-1 1H4a1 1 0 01-1-1V10.5z"/>
+            <path d="M9 22V12h6v10"/>
+        </svg>
+        <span class="bn-label">Home</span>
+    </a>
+    <a href="log.html" class="bn-item active" aria-current="page">
+        <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9"/>
+            <line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
+        </svg>
+        <span class="bn-label">Log</span>
+    </a>
+    <a href="test.html" class="bn-item" aria-label="Practice Tests">
+        <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
+            <rect x="9" y="3" width="6" height="4" rx="1"/>
+            <line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/>
+        </svg>
+        <span class="bn-label">Tests</span>
+    </a>
+    <a href="test-history.html" class="bn-item" aria-label="Test History">
+        <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="4" height="10" rx="1"/>
+            <rect x="10" y="6" width="4" height="15" rx="1"/>
+            <rect x="17" y="3" width="4" height="18" rx="1"/>
+        </svg>
+        <span class="bn-label">T. Hist</span>
+    </a>
+    <a href="history.html" class="bn-item" aria-label="Study History">
+        <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/>
+        </svg>
+        <span class="bn-label">Study</span>
+    </a>
+    <a href="sync.html" class="bn-item" aria-label="Sync">
+        <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2.5 2v6h6"/><path d="M21.5 22v-6h-6"/>
+            <path d="M22 11.5A10 10 0 003.2 7.2"/>
+            <path d="M2 12.5a10 10 0 0018.8 4.3"/>
+        </svg>
+        <span class="bn-label">Sync</span>
+    </a>
+</nav>
+
+<div class="page">
+    <p class="page-eyebrow">Log a session</p>
+    <h1 class="page-title">How long did<br>you study?</h1>
+
+    <div class="form-section">
+        <!-- Date + Time Started -->
+        <div class="date-time-row">
+            <div class="field">
+                <span class="field-label">Date</span>
+                <input type="date" id="dateInput">
+            </div>
+            <div class="field">
+                <span class="field-label">Time Started</span>
+                <input type="time" id="startTimeInput">
+            </div>
+        </div>
+
+        <!-- Duration -->
+        <div class="field">
+            <span class="field-label">Duration</span>
+            <div class="duration-row">
+                <div class="duration-unit">
+                    <input type="number" class="duration-input" id="hoursInput"
+                           min="0" max="23" placeholder="0">
+                    <span class="unit-label">hr</span>
+                </div>
+                <span class="duration-sep">:</span>
+                <div class="duration-unit">
+                    <input type="number" class="duration-input" id="minutesInput"
+                           min="0" max="59" placeholder="00">
+                    <span class="unit-label">min</span>
+                </div>
+            </div>
+            <div class="chips">
+                <button class="chip" onclick="addMinutes(15)">+15 min</button>
+                <button class="chip" onclick="addMinutes(30)">+30 min</button>
+                <button class="chip" onclick="addMinutes(45)">+45 min</button>
+                <button class="chip" onclick="addMinutes(60)">+1 hr</button>
+                <button class="chip" onclick="addMinutes(90)">+1.5 hr</button>
+                <button class="chip" onclick="addMinutes(120)">+2 hr</button>
+            </div>
+        </div>
+
+        <!-- Session score -->
+        <div class="field">
+            <span class="field-label">Session score <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--gray-text)">(optional)</span></span>
+            <div class="score-row">
+                <input type="number" class="score-input" id="scoreInput" min="1" max="10" placeholder="—">
+                <span class="score-max">/ 10</span>
+            </div>
+            <p class="score-hint">Rate your focus, pace, and energy.</p>
+        </div>
+
+        <button class="btn-submit" onclick="logSession()">Log Session</button>
+    </div>
+
+    <hr class="divider">
+
+    <p class="recent-label">Recent sessions</p>
+    <div class="recent-list" id="recentList"></div>
+    <a href="history.html" class="see-all" id="seeAllLink" style="display:none;">See all →</a>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="storage.js"></script>
+<script src="firebase-init.js"></script>
+<script src="pwa-init.js"></script>
+<script>
+    const RECENT_MAX = 3;
+
+    const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+    /* ── Formatting ── */
+    function fmtDuration(secs) {
+        const h = Math.floor(secs / 3600), m = Math.floor((secs % 3600) / 60);
+        if (h > 0 && m > 0) return `${h} hr ${m} min`;
+        if (h > 0)           return `${h} hr`;
+        return `${m} min`;
+    }
+    function fmtDate(isoStr) {
+        const d = new Date(isoStr);
+        return `${DAYS[d.getDay()]}, ${MONTHS[d.getMonth()]} ${d.getDate()}`;
+    }
+    function fmtTime(isoStr) {
+        const d = new Date(isoStr);
+        const h = d.getHours(), min = String(d.getMinutes()).padStart(2,'0');
+        return `${(h % 12) || 12}:${min} ${h >= 12 ? 'PM' : 'AM'}`;
+    }
+    function todayValue() {
+        const d = new Date();
+        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    }
+
+    /* ── Quick-add chips ── */
+    function addMinutes(n) {
+        const h = parseInt(document.getElementById('hoursInput').value)   || 0;
+        const m = parseInt(document.getElementById('minutesInput').value) || 0;
+        let total = Math.max(0, h * 60 + m + n);
+        document.getElementById('hoursInput').value   = Math.floor(total / 60);
+        document.getElementById('minutesInput').value = total % 60;
+        updateStartTime();
+    }
+
+    /* ── Auto-calculate start time from duration ── */
+    function updateStartTime() {
+        const h = parseInt(document.getElementById('hoursInput').value)   || 0;
+        const m = parseInt(document.getElementById('minutesInput').value) || 0;
+        const totalMins = h * 60 + m;
+        if (totalMins <= 0) return;
+
+        const start = new Date(Date.now() - totalMins * 60000);
+        document.getElementById('startTimeInput').value =
+            `${String(start.getHours()).padStart(2,'0')}:${String(start.getMinutes()).padStart(2,'0')}`;
+        document.getElementById('dateInput').value =
+            `${start.getFullYear()}-${String(start.getMonth()+1).padStart(2,'0')}-${String(start.getDate()).padStart(2,'0')}`;
+    }
+
+    /* ── Log session ── */
+    async function logSession() {
+        const dateVal      = document.getElementById('dateInput').value;
+        const startTimeVal = document.getElementById('startTimeInput').value;
+        const h            = parseInt(document.getElementById('hoursInput').value)   || 0;
+        const m            = parseInt(document.getElementById('minutesInput').value) || 0;
+        const duration     = h * 3600 + m * 60;
+
+        if (!dateVal)      { showToast('Pick a date first'); return; }
+        if (duration <= 0) { showToast('Add a duration first'); return; }
+
+        const [yr, mo, dy]    = dateVal.split('-').map(Number);
+        const now             = new Date();
+        const [startHr, startMin] = startTimeVal
+            ? startTimeVal.split(':').map(Number)
+            : [now.getHours(), now.getMinutes()];
+        const date = new Date(yr, mo - 1, dy, startHr, startMin, 0);
+
+        const scoreRaw = parseFloat(document.getElementById('scoreInput').value);
+        const score    = (!isNaN(scoreRaw) && scoreRaw >= 1 && scoreRaw <= 10) ? +scoreRaw.toFixed(1) : null;
+
+        const sessions = await SAT_STORAGE.getSessions();
+        sessions.push({ id: Date.now().toString(), date: date.toISOString(), duration, score });
+        await SAT_STORAGE.saveSessions(sessions);
+
+        document.getElementById('hoursInput').value   = '';
+        document.getElementById('minutesInput').value = '';
+        document.getElementById('scoreInput').value   = '';
+
+        await renderRecent();
+        showToast(`Session logged — ${fmtDuration(duration)}`);
+    }
+
+    /* ── Recent list ── */
+    async function renderRecent() {
+        const sessions = (await SAT_STORAGE.getSessions())
+            .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        const listEl = document.getElementById('recentList');
+        const linkEl = document.getElementById('seeAllLink');
+
+        if (sessions.length === 0) {
+            listEl.innerHTML = '';
+            linkEl.style.display = 'none';
+            return;
+        }
+
+        listEl.innerHTML = sessions.slice(0, RECENT_MAX).map(s => {
+            const scoreStr = s.score != null ? `<span class="recent-score">${s.score}/10</span>` : '';
+            return `
+            <div class="recent-row">
+                <div>
+                    <div class="recent-date">${fmtDate(s.date)}${scoreStr}</div>
+                    <div class="recent-time">Started at ${fmtTime(s.date)}</div>
+                </div>
+                <div class="recent-duration">${fmtDuration(s.duration)}</div>
+            </div>`;
+        }).join('');
+
+        linkEl.style.display = sessions.length > RECENT_MAX ? 'inline-block' : 'none';
+    }
+
+    /* ── Toast ── */
+    let toastTimer = null;
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    /* ── Boot ── */
+    document.addEventListener('DOMContentLoaded', async () => {
+        document.getElementById('dateInput').value = todayValue();
+        const now = new Date();
+        document.getElementById('startTimeInput').value =
+            `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+        document.getElementById('minutesInput').addEventListener('blur', function () {
+            let v = parseInt(this.value) || 0;
+            if (v > 59) {
+                document.getElementById('hoursInput').value =
+                    (parseInt(document.getElementById('hoursInput').value) || 0) + Math.floor(v / 60);
+                this.value = v % 60;
+            }
+            updateStartTime();
+        });
+
+        document.getElementById('hoursInput').addEventListener('input', updateStartTime);
+        document.getElementById('minutesInput').addEventListener('input', updateStartTime);
+
+        await renderRecent();
+    });
+</script>
+</body>
+</html>

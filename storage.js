@@ -1,85 +1,73 @@
 /* SAT Prep — storage
- * Primary store: localStorage.
- * Cross-device sync: Export JSON → save to OneDrive → Import JSON on the other device.
+ * Primary store: localStorage (instant, always available).
+ * Cloud sync:    Firestore when signed in via firebase-init.js.
+ *                Writes push to cloud in the background.
+ *                On sign-in, cloud data merges into localStorage and
+ *                a 'sat:synced' event fires so pages can re-render.
  */
 const SAT_STORAGE = (() => {
     const LS_KEY       = 'sat_prep_sessions';
     const LS_TESTS_KEY = 'sat_prep_tests';
 
-    function _lsGet() {
-        try { return JSON.parse(localStorage.getItem(LS_KEY)) || []; }
-        catch { return []; }
+    let _db  = null;
+    let _uid = null;
+
+    // ── localStorage ──
+    function _lsGet()       { try { return JSON.parse(localStorage.getItem(LS_KEY))       || []; } catch { return []; } }
+    function _lsSet(s)      { localStorage.setItem(LS_KEY,       JSON.stringify(s)); }
+    function _lsGetTests()  { try { return JSON.parse(localStorage.getItem(LS_TESTS_KEY)) || []; } catch { return []; } }
+    function _lsSetTests(t) { localStorage.setItem(LS_TESTS_KEY, JSON.stringify(t)); }
+    function _merge(a, b)   { const m = {}; [...a, ...b].forEach(x => { m[x.id] = x; }); return Object.values(m); }
+
+    // ── Firestore ──
+    function _ref() {
+        return _db && _uid ? _db.collection('users').doc(_uid).collection('data').doc('main') : null;
     }
-    function _lsSet(sessions) {
-        localStorage.setItem(LS_KEY, JSON.stringify(sessions));
+
+    async function _push(sessions, tests) {
+        const ref = _ref();
+        if (!ref) return;
+        try {
+            await ref.set({
+                sessions,
+                tests,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        } catch (e) {
+            console.warn('[SAT] cloud push failed', e);
+        }
     }
-    function _lsGetTests() {
-        try { return JSON.parse(localStorage.getItem(LS_TESTS_KEY)) || []; }
-        catch { return []; }
-    }
-    function _lsSetTests(tests) {
-        localStorage.setItem(LS_TESTS_KEY, JSON.stringify(tests));
-    }
-    function _merge(a, b) {
-        const m = {};
-        [...a, ...b].forEach(s => { m[s.id] = s; });
-        return Object.values(m);
+
+    async function _pull() {
+        const ref = _ref();
+        if (!ref) return;
+        try {
+            const snap = await ref.get();
+            if (!snap.exists) {
+                await _push(_lsGet(), _lsGetTests());
+                window.dispatchEvent(new CustomEvent('sat:synced', { detail: { source: 'seed' } }));
+                return;
+            }
+            const { sessions = [], tests = [] } = snap.data();
+            const mergedS = _merge(_lsGet(), sessions);
+            const mergedT = _merge(_lsGetTests(), tests);
+            _lsSet(mergedS);
+            _lsSetTests(mergedT);
+            window.dispatchEvent(new CustomEvent('sat:synced', { detail: { source: 'pull' } }));
+        } catch (e) {
+            console.warn('[SAT] cloud pull failed', e);
+        }
     }
 
     return {
+        _connect(db, uid) { _db = db; _uid = uid; _pull(); },
+        _disconnect()     { _db = null; _uid = null; },
+        isConnected()     { return !!(_db && _uid); },
+        manualSync()      { return _pull(); },
+
         async getSessions()          { return _lsGet(); },
-        async saveSessions(sessions) { _lsSet(sessions); },
         async getTests()             { return _lsGetTests(); },
-        async saveTests(tests)       { _lsSetTests(tests); },
-
-        /* Save current sessions to a JSON file the user picks. */
-        async exportSessions() {
-            const data = JSON.stringify(_lsGet(), null, 2);
-
-            if (typeof window.showSaveFilePicker === 'function') {
-                try {
-                    const handle = await window.showSaveFilePicker({
-                        suggestedName: 'sat-prep-sessions.json',
-                        types: [{ description: 'JSON file', accept: { 'application/json': ['.json'] } }]
-                    });
-                    const writable = await handle.createWritable();
-                    await writable.write(data);
-                    await writable.close();
-                    return;
-                } catch (e) {
-                    if (e.name === 'AbortError') return; // user cancelled
-                }
-            }
-
-            // Fallback for browsers without showSaveFilePicker
-            const blob = new Blob([data], { type: 'application/json' });
-            const url  = URL.createObjectURL(blob);
-            const a    = Object.assign(document.createElement('a'), {
-                href: url, download: 'sat-prep-sessions.json'
-            });
-            a.click();
-            URL.revokeObjectURL(url);
-        },
-
-        /* Read a File object, merge its sessions with current data, persist.
-         * Returns the number of sessions after merging. */
-        async importSessions(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = e => {
-                    try {
-                        const imported = JSON.parse(e.target.result);
-                        if (!Array.isArray(imported)) throw new Error('Not a session array');
-                        const merged = _merge(_lsGet(), imported);
-                        _lsSet(merged);
-                        resolve(merged.length);
-                    } catch (err) {
-                        reject(err);
-                    }
-                };
-                reader.onerror = () => reject(new Error('Could not read file'));
-                reader.readAsText(file);
-            });
-        }
+        async saveSessions(sessions) { _lsSet(sessions); _push(sessions, _lsGetTests()); },
+        async saveTests(tests)       { _lsSetTests(tests); _push(_lsGet(), tests); },
     };
 })();

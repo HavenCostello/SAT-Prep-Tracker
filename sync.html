@@ -142,6 +142,56 @@
         }
         .sync-card-desc strong { color: var(--dark); font-weight: 600; }
 
+        /* ── Cloud sync card ── */
+        .sync-card--muted { text-align: center; }
+        .sync-card--muted .sync-card-desc { margin-bottom: 0; font-style: italic; }
+
+        .cloud-user-row {
+            display: flex;
+            align-items: center;
+            gap: 0.875rem;
+            margin-bottom: 0.75rem;
+            min-width: 0;
+        }
+        .cloud-avatar {
+            width: 2.25rem;
+            height: 2.25rem;
+            border-radius: 50%;
+            background: var(--dark);
+            color: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            flex-shrink: 0;
+        }
+        .cloud-user-name {
+            font-size: 0.9375rem;
+            font-weight: 500;
+            letter-spacing: -0.03em;
+            color: var(--dark);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .cloud-user-email {
+            font-size: 0.75rem;
+            color: var(--gray-text);
+            letter-spacing: -0.01em;
+            margin-top: 0.125rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .cloud-actions {
+            display: flex;
+            gap: 0.625rem;
+            flex-wrap: wrap;
+            margin-top: 0.25rem;
+        }
+
         /* ── Buttons ── */
         .sync-btn {
             display: inline-flex;
@@ -163,6 +213,7 @@
         .sync-btn--primary   { background: var(--dark);  color: var(--white); }
         .sync-btn--secondary { background: var(--gray);  color: var(--dark);  }
         .sync-btn--danger    { background: #9e2a2b;      color: var(--white); }
+        .sync-btn--ghost     { background: transparent;  color: var(--gray-text); border: 1.5px solid var(--gray); }
 
         .import-options { display: flex; gap: 0.625rem; flex-wrap: wrap; }
 
@@ -210,6 +261,9 @@
             .sync-card { padding: 1.25rem; }
             .import-options { flex-direction: column; }
             .sync-btn { width: 100%; justify-content: center; }
+            .cloud-actions { flex-direction: column; }
+            .cloud-actions .sync-btn { width: 100%; }
+            .cloud-user-name { font-size: 0.875rem; }
         }
 
         /* ── Tablet / iPad Pro (768px–1024px) ── */
@@ -241,11 +295,48 @@
 <div class="page">
     <p class="page-eyebrow">SAT Prep</p>
     <h1 class="page-title">Sync &amp; Backup</h1>
-    <p class="page-sub">Export your data to a file, then import it on another device to keep everything in sync.</p>
+    <p class="page-sub">Sign in to sync automatically across all your devices. Use the backup tools below to export or import a local file.</p>
+
+    <!-- Cloud Sync -->
+    <div class="sync-section">
+        <p class="sync-label">Cloud Sync</p>
+
+        <div id="cloudLoading" class="sync-card sync-card--muted">
+            <p class="sync-card-desc">Connecting…</p>
+        </div>
+
+        <div id="cloudSetup" class="sync-card" style="display:none">
+            <p class="sync-card-title">Setup required</p>
+            <p class="sync-card-desc">Fill in your Firebase credentials in <strong>firebase-config.js</strong> to enable automatic cloud sync. Setup instructions are in that file.</p>
+        </div>
+
+        <div id="cloudSignedOut" class="sync-card" style="display:none">
+            <p class="sync-card-title">Sync across devices</p>
+            <p class="sync-card-desc">Sign in with your Google account to keep all your study sessions and practice tests in sync — automatically, across every device.</p>
+            <button class="sync-btn sync-btn--primary" onclick="doSignIn()">Continue with Google</button>
+        </div>
+
+        <div id="cloudSignedIn" class="sync-card" style="display:none">
+            <div class="cloud-user-row">
+                <div class="cloud-avatar" id="cloudAvatar"></div>
+                <div style="min-width:0">
+                    <div class="cloud-user-name"  id="cloudName"></div>
+                    <div class="cloud-user-email" id="cloudEmail"></div>
+                </div>
+            </div>
+            <p class="status-line" id="cloudStatus"></p>
+            <div class="cloud-actions">
+                <button class="sync-btn sync-btn--secondary" onclick="doManualSync()">Sync now</button>
+                <button class="sync-btn sync-btn--ghost"     onclick="doSignOut()">Sign out</button>
+            </div>
+        </div>
+    </div>
+
+    <hr class="divider">
 
     <!-- Export -->
     <div class="sync-section">
-        <p class="sync-label">Export</p>
+        <p class="sync-label">Backup — Export</p>
         <div class="sync-card">
             <p class="sync-card-title">Download all data</p>
             <p class="sync-card-desc">Saves all study sessions and practice tests to a single JSON file you can store anywhere — OneDrive, iCloud, a USB drive, or email to yourself.</p>
@@ -258,7 +349,7 @@
 
     <!-- Import -->
     <div class="sync-section">
-        <p class="sync-label">Import</p>
+        <p class="sync-label">Backup — Import</p>
         <div class="sync-card">
             <p class="sync-card-title">Load from file</p>
             <p class="sync-card-desc">Choose how to handle existing data when importing. <strong>Merge</strong> combines both and keeps the newer version of any duplicate. <strong>Replace</strong> discards everything currently on this device first.</p>
@@ -274,10 +365,74 @@
 <input type="file" id="fileInput" accept=".json" style="display:none">
 <div class="toast" id="toast"></div>
 
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
 <script src="storage.js"></script>
+<script src="firebase-init.js"></script>
 <script>
-    let pendingMode = null;
+    // ── Cloud panel ──
+    function _isFirebaseConfigured() {
+        return typeof FIREBASE_CONFIG !== 'undefined' &&
+               !Object.values(FIREBASE_CONFIG).some(v => String(v).startsWith('REPLACE_'));
+    }
 
+    function showCloud(id) {
+        ['cloudLoading', 'cloudSetup', 'cloudSignedOut', 'cloudSignedIn']
+            .forEach(p => { document.getElementById(p).style.display = p === id ? '' : 'none'; });
+    }
+
+    window.addEventListener('sat:authchange', e => {
+        const user = e.detail.user;
+        if (user) {
+            const initial = (user.displayName || user.email || '?').trim()[0].toUpperCase();
+            document.getElementById('cloudAvatar').textContent = initial;
+            document.getElementById('cloudName').textContent   = user.displayName || '';
+            document.getElementById('cloudEmail').textContent  = user.email || '';
+            showCloud('cloudSignedIn');
+        } else {
+            showCloud('cloudSignedOut');
+        }
+    });
+
+    window.addEventListener('sat:synced', () => {
+        const el = document.getElementById('cloudStatus');
+        if (el) {
+            const t = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            el.textContent = `Synced at ${t}`;
+        }
+    });
+
+    async function doSignIn() {
+        if (typeof firebase === 'undefined') return;
+        try {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            await firebase.auth().signInWithPopup(provider);
+        } catch (e) {
+            if (e.code !== 'auth/popup-closed-by-user') showToast('Sign-in failed');
+        }
+    }
+
+    async function doSignOut() {
+        if (!confirm('Sign out of cloud sync? Your data stays on this device.')) return;
+        try { await firebase.auth().signOut(); } catch {}
+    }
+
+    async function doManualSync() {
+        const el = document.getElementById('cloudStatus');
+        if (el) el.textContent = 'Syncing…';
+        await SAT_STORAGE.manualSync();
+    }
+
+    if (!_isFirebaseConfigured()) {
+        showCloud('cloudSetup');
+    } else {
+        const authTimeout = setTimeout(() => showCloud('cloudSetup'), 6000);
+        window.addEventListener('sat:authchange', () => clearTimeout(authTimeout), { once: true });
+    }
+
+    // ── Export ──
     async function doExport() {
         const [sessions, tests] = await Promise.all([SAT_STORAGE.getSessions(), SAT_STORAGE.getTests()]);
         const payload = JSON.stringify({ version: 1, exported: new Date().toISOString(), sessions, tests }, null, 2);
@@ -304,6 +459,9 @@
         URL.revokeObjectURL(url);
         setStatus('exportStatus', `Exported ${sessions.length} session${sessions.length !== 1 ? 's' : ''} and ${tests.length} test${tests.length !== 1 ? 's' : ''}`);
     }
+
+    // ── Import ──
+    let pendingMode = null;
 
     function triggerImport(mode) {
         if (mode === 'replace' && !confirm('This will delete all current data on this device and replace it with the file. Continue?')) return;
@@ -345,6 +503,7 @@
         }
     }
 
+    // ── Utilities ──
     function setStatus(id, msg) {
         document.getElementById(id).textContent = msg;
     }

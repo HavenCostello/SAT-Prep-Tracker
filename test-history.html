@@ -1048,15 +1048,6 @@
                 ? '<span class="no-missed-inline">No questions missed</span>'
                 : `<span class="no-missed-inline">${questions.length} question${questions.length !== 1 ? 's' : ''} missed</span>`;
 
-            const tl = t.timeLeft || {};
-            const tlParts = [
-                tl.rw1 != null ? `RW S1 ${fmtTimeLeft(tl.rw1)}` : null,
-                tl.rw2 != null ? `RW S2 ${fmtTimeLeft(tl.rw2)}` : null,
-                tl.m1  != null ? `M S1 ${fmtTimeLeft(tl.m1)}`   : null,
-                tl.m2  != null ? `M S2 ${fmtTimeLeft(tl.m2)}`   : null,
-            ].filter(Boolean);
-            const tlHTML = tlParts.length ? `<div class="test-tl-sub">${tlParts.join(' · ')}</div>` : '';
-
             html += `
                 <div class="test-row" id="row-${t.id}" onmouseenter="hoverTest('${t.id}')" onmouseleave="hideHoverPreview()">
                     <div class="test-row-main" onclick="showTestDetail('${t.id}')">
@@ -1066,7 +1057,6 @@
                     <div class="test-score-col" onclick="showTestDetail('${t.id}')" style="cursor:pointer">
                         <div class="test-score-main">${total} <span style="color:var(--gray-text);font-size:0.75rem;font-weight:400">/ 1600</span></div>
                         <div class="test-score-sub">R&amp;W ${t.rwScore} &nbsp;·&nbsp; Math ${t.mathScore}</div>
-                        ${tlHTML}
                     </div>
                     <button class="delete-btn" onclick="deleteTest('${t.id}')" title="Delete">
                         <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">

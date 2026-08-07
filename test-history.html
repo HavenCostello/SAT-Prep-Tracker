@@ -32,6 +32,56 @@
             margin-top: 0.125rem;
         }
 
+        /* ── Skill trend ── */
+        .skill-trend-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.25rem;
+        }
+        .skill-trend-select {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            letter-spacing: -0.01em;
+            color: var(--dark);
+            background: var(--white);
+            border: 1.5px solid var(--gray);
+            border-radius: 6.25rem;
+            padding: 0.5625rem 2.125rem 0.5625rem 1rem;
+            outline: none;
+            cursor: pointer;
+            transition: border-color 0.15s;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236b6b6b' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 13px center;
+            max-width: 100%;
+        }
+        .skill-trend-select:focus { border-color: var(--dark); }
+        .skill-trend-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.375rem 1rem;
+            margin-top: 0.875rem;
+            font-size: 0.75rem;
+            color: var(--gray-text);
+        }
+        .skill-trend-meta .trend-stat-val { color: var(--dark); font-weight: 500; }
+        .skill-trend-meta .trend-up   { color: #9e2a2b; font-weight: 500; }
+        .skill-trend-meta .trend-down { color: #2f6b4f; font-weight: 500; }
+        .skill-trend-empty {
+            font-family: 'Libre Baskerville', serif;
+            font-style: italic;
+            font-size: 0.8125rem;
+            color: var(--gray-text);
+        }
+
         /* ── Missed-skills breakdown ── */
         .breakdown-section {
             background: var(--off-white);
@@ -488,6 +538,18 @@
         </div>
     </div>
 
+    <!-- Skill trend -->
+    <div class="chart-section">
+        <div class="skill-trend-header">
+            <span class="chart-title">Skill trend</span>
+            <select class="skill-trend-select" id="skillTrendSelect" onchange="renderSkillTrend()"></select>
+        </div>
+        <div id="skillTrendChart">
+            <div class="chart-empty">Select a skill to see its trend</div>
+        </div>
+        <div class="skill-trend-meta" id="skillTrendMeta"></div>
+    </div>
+
     <!-- Missed skills breakdown -->
     <div class="breakdown-section">
         <p class="breakdown-title" id="breakdownTitle">Most missed skills</p>
@@ -737,6 +799,143 @@
     const RW_COLOR   = '#003566';
     const MATH_COLOR = '#9e2a2b';
     const SEC_COLORS = { rw1: RW_COLOR, rw2: RW_COLOR, m1: MATH_COLOR, m2: MATH_COLOR };
+
+    /* ── Skill trend ── */
+    const SAT_SKILLS = {
+        "Reading and Writing": {
+            "Information and Ideas": [
+                "Central Ideas and Details", "Inferences",
+                "Command of Evidence (Textual)", "Command of Evidence (Quantitative)"
+            ],
+            "Craft and Structure": [
+                "Words in Context", "Text Structure and Purpose", "Cross-Text Connections"
+            ],
+            "Expression of Ideas": ["Rhetorical Synthesis", "Transitions"],
+            "Standard English Conventions": ["Boundaries", "Form, Structure, and Sense"]
+        },
+        "Math": {
+            "Algebra": [
+                "Linear Equations in One Variable", "Linear Equations in Two Variables",
+                "Linear Inequalities in One or Two Variables",
+                "Systems of Linear Equations in Two Variables"
+            ],
+            "Advanced Math": [
+                "Equivalent Expressions",
+                "Nonlinear Equations in One Variable and Systems",
+                "Nonlinear Functions"
+            ],
+            "Problem-Solving and Data Analysis": [
+                "Percentages", "Ratios, Rates, and Proportional Relationships",
+                "Two-Variable Data (Scatterplots)", "One-Variable Data (Distributions and Measures)",
+                "Probability and Conditional Probability",
+                "Inference from Sample Statistics", "Evaluating Statistical Claims"
+            ],
+            "Geometry and Trigonometry": [
+                "Area and Volume", "Lines, Angles, and Triangles",
+                "Right Triangles and Trigonometry", "Circles"
+            ]
+        }
+    };
+
+    let skillTrendSelected = null;
+
+    function skillSectionGroup(skill) {
+        for (const skills of Object.values(SAT_SKILLS['Reading and Writing'])) {
+            if (skills.includes(skill)) return 'rw';
+        }
+        return 'math';
+    }
+
+    function populateSkillTrendSelect() {
+        const sel = document.getElementById('skillTrendSelect');
+        let html = '';
+        for (const [sName, domains] of Object.entries(SAT_SKILLS)) {
+            const s = sName === 'Reading and Writing' ? 'R&W' : 'Math';
+            for (const [domain, skills] of Object.entries(domains)) {
+                html += `<optgroup label="${s} · ${domain}">`;
+                skills.forEach(sk => { html += `<option value="${sk}">${sk}</option>`; });
+                html += `</optgroup>`;
+            }
+        }
+        sel.innerHTML = html;
+        if (!skillTrendSelected) skillTrendSelected = sel.querySelector('option').value;
+        sel.value = skillTrendSelected;
+    }
+
+    function renderSkillTrend() {
+        const sel = document.getElementById('skillTrendSelect');
+        skillTrendSelected = sel.value;
+        const skill   = skillTrendSelected;
+        const chartEl = document.getElementById('skillTrendChart');
+        const metaEl  = document.getElementById('skillTrendMeta');
+
+        const sorted = [...lastFiltered].sort((a, b) => new Date(a.date) - new Date(b.date));
+        const slice  = sorted.slice(-30);
+
+        if (slice.length === 0) {
+            chartEl.innerHTML = '<div class="chart-empty">No tests logged for this period</div>';
+            metaEl.innerHTML  = '';
+            return;
+        }
+
+        const color  = skillSectionGroup(skill) === 'rw' ? RW_COLOR : MATH_COLOR;
+        const points = slice.map(t => ({
+            label: fmtDateShort(t.date),
+            value: (t.missedQuestions || []).filter(q => q.skill === skill).length,
+        }));
+
+        const maxVal   = Math.max(...points.map(p => p.value), 1);
+        const barsHTML = points.map(p => {
+            const isMiss = p.value > 0;
+            const pct    = isMiss ? Math.max((p.value / maxVal) * 100, 20) : 6;
+            const bg     = isMiss ? color : 'var(--gray)';
+            const op     = isMiss ? '1' : '0.4';
+            const tip    = `${p.label}: ${p.value} missed`;
+            return `<div class="bar-item"><div class="bar-inner has-data" data-h="${pct.toFixed(1)}" data-tip="${tip}" style="height:0;background:${bg};opacity:${op}"></div></div>`;
+        }).join('');
+
+        const labelsHTML = points.map((p, i) =>
+            `<div class="bar-lbl">${shouldShowLabel(i, points.length) ? p.label : ''}</div>`
+        ).join('');
+
+        chartEl.innerHTML = `
+            <div class="chart-bars-area">
+                <div class="chart-grid">
+                    <div class="chart-grid-line"></div>
+                    <div class="chart-grid-line"></div>
+                    <div class="chart-grid-line"></div>
+                    <div class="chart-grid-line"></div>
+                </div>
+                <div class="chart-bars">${barsHTML}</div>
+            </div>
+            <div class="chart-x-labels">${labelsHTML}</div>`;
+
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+            chartEl.querySelectorAll('.bar-inner[data-h]').forEach(el => {
+                el.style.height = el.getAttribute('data-h') + '%';
+            });
+        }));
+
+        const totalMisses = points.reduce((s, p) => s + p.value, 0);
+        const missedTests = points.filter(p => p.value > 0).length;
+        const cleanTests  = points.length - missedTests;
+        const missRate    = Math.round((missedTests / points.length) * 100);
+
+        let trendHTML = '<span></span>';
+        if (points.length >= 4) {
+            const mid         = Math.floor(points.length / 2);
+            const firstRate   = points.slice(0, mid).filter(p => p.value > 0).length / mid;
+            const secondRate  = points.slice(mid).filter(p => p.value > 0).length / (points.length - mid);
+            const diff = secondRate - firstRate;
+            if (diff <= -0.15)      trendHTML = '<span class="trend-down">↓ Improving</span>';
+            else if (diff >= 0.15)  trendHTML = '<span class="trend-up">↑ Worsening</span>';
+            else                    trendHTML = '<span>→ Steady</span>';
+        }
+
+        metaEl.innerHTML = `
+            <span>Missed <span class="trend-stat-val">${totalMisses}×</span> across <span class="trend-stat-val">${missedTests}</span> of <span class="trend-stat-val">${points.length}</span> tests (${missRate}%) &nbsp;·&nbsp; ${cleanTests} clean</span>
+            ${trendHTML}`;
+    }
 
     function renderBreakdown(tests) {
         const listEl  = document.getElementById('breakdownList');
@@ -1011,6 +1210,7 @@
         renderChart(filtered, currentFilter, allSessions);
         renderTimeLeftChart(filtered);
         renderBreakdown(filtered);
+        renderSkillTrend();
 
         const listEl = document.getElementById('testList');
         if (filtered.length === 0) {
@@ -1096,7 +1296,7 @@
         toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
     }
 
-    document.addEventListener('DOMContentLoaded', () => render());
+    document.addEventListener('DOMContentLoaded', () => { populateSkillTrendSelect(); render(); });
     window.addEventListener('sat:synced', () => render());
 
     /* ── Hover Preview ── */

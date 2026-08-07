@@ -82,6 +82,53 @@
             color: var(--gray-text);
         }
 
+        /* ── Skill progress (improving / worsening) ── */
+        .skill-progress-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-top: 1.25rem;
+        }
+        @media (max-width: 479px) { .skill-progress-grid { grid-template-columns: 1fr; gap: 1.5rem; } }
+        .skill-progress-col-label {
+            font-size: 0.6875rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 0.625rem;
+        }
+        .skill-progress-col-label--up   { color: #2f6b4f; }
+        .skill-progress-col-label--down { color: #9e2a2b; }
+        .skill-progress-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.625rem;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--white);
+            cursor: pointer;
+            font-size: 0.8125rem;
+        }
+        .skill-progress-row:last-child { border-bottom: none; }
+        .skill-progress-name {
+            font-weight: 500;
+            letter-spacing: -0.02em;
+            color: var(--dark);
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .skill-progress-delta {
+            font-variant-numeric: tabular-nums;
+            font-weight: 600;
+            font-size: 0.75rem;
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+        .skill-progress-delta--up   { color: #2f6b4f; }
+        .skill-progress-delta--down { color: #9e2a2b; }
+
         /* ── Missed-skills breakdown ── */
         .breakdown-section {
             background: var(--off-white);
@@ -538,18 +585,6 @@
         </div>
     </div>
 
-    <!-- Skill trend -->
-    <div class="chart-section">
-        <div class="skill-trend-header">
-            <span class="chart-title">Skill trend</span>
-            <select class="skill-trend-select" id="skillTrendSelect" onchange="renderSkillTrend()"></select>
-        </div>
-        <div id="skillTrendChart">
-            <div class="chart-empty">Select a skill to see its trend</div>
-        </div>
-        <div class="skill-trend-meta" id="skillTrendMeta"></div>
-    </div>
-
     <!-- Missed skills breakdown -->
     <div class="breakdown-section">
         <p class="breakdown-title" id="breakdownTitle">Most missed skills</p>
@@ -583,6 +618,33 @@
             <p class="section-panel-title">Math Section 2</p>
             <div id="skillsM2"><p class="panel-empty">No data</p></div>
         </div>
+    </div>
+
+    <!-- Skill progress (improving / worsening) -->
+    <div class="section-breakdown">
+        <p class="section-breakdown-title">Improving &amp; worsening skills</p>
+        <div class="skill-progress-grid">
+            <div class="skill-progress-col">
+                <p class="skill-progress-col-label skill-progress-col-label--up">Improving</p>
+                <div id="skillProgressUp"><p class="panel-empty">Not enough data yet</p></div>
+            </div>
+            <div class="skill-progress-col">
+                <p class="skill-progress-col-label skill-progress-col-label--down">Worsening</p>
+                <div id="skillProgressDown"><p class="panel-empty">Not enough data yet</p></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Skill trend -->
+    <div class="chart-section">
+        <div class="skill-trend-header">
+            <span class="chart-title">Skill trend</span>
+            <select class="skill-trend-select" id="skillTrendSelect" onchange="renderSkillTrend()"></select>
+        </div>
+        <div id="skillTrendChart">
+            <div class="chart-empty">Select a skill to see its trend</div>
+        </div>
+        <div class="skill-trend-meta" id="skillTrendMeta"></div>
     </div>
 
     <!-- Test list -->
@@ -837,6 +899,8 @@
         }
     };
 
+    const ALL_SKILLS = Object.values(SAT_SKILLS).flatMap(domains => Object.values(domains).flat());
+
     let skillTrendSelected = null;
 
     function skillSectionGroup(skill) {
@@ -844,6 +908,36 @@
             if (skills.includes(skill)) return 'rw';
         }
         return 'math';
+    }
+
+    /*
+     * Recency-weighted trend for a skill: the most recent test counts for 40%
+     * of the "current" read, the average of every earlier test makes up the
+     * other 60%. That current read is then compared back against the plain
+     * past average to get a signed delta (negative = fewer misses lately =
+     * improving; positive = worsening). A flat first-half/second-half split
+     * let one bad test in the middle keep dragging the verdict down even
+     * after a clean recent test — this fixes that.
+     */
+    function computeSkillTrend(tests, skill) {
+        const sorted = [...tests].sort((a, b) => new Date(a.date) - new Date(b.date));
+        const slice  = sorted.slice(-30);
+        const points = slice.map(t => ({
+            label: fmtDateShort(t.date),
+            value: (t.missedQuestions || []).filter(q => q.skill === skill).length,
+        }));
+        const values = points.map(p => p.value);
+
+        let pastAvg = null, weighted = null, delta = null;
+        if (values.length >= 2) {
+            const latest       = values[values.length - 1];
+            const priorValues  = values.slice(0, -1);
+            pastAvg  = priorValues.reduce((a, b) => a + b, 0) / priorValues.length;
+            weighted = 0.4 * latest + 0.6 * pastAvg;
+            delta    = weighted - pastAvg;
+        }
+
+        return { points, values, pastAvg, weighted, delta };
     }
 
     function populateSkillTrendSelect() {
@@ -869,21 +963,16 @@
         const chartEl = document.getElementById('skillTrendChart');
         const metaEl  = document.getElementById('skillTrendMeta');
 
-        const sorted = [...lastFiltered].sort((a, b) => new Date(a.date) - new Date(b.date));
-        const slice  = sorted.slice(-30);
+        const trend  = computeSkillTrend(lastFiltered, skill);
+        const points = trend.points;
 
-        if (slice.length === 0) {
+        if (points.length === 0) {
             chartEl.innerHTML = '<div class="chart-empty">No tests logged for this period</div>';
             metaEl.innerHTML  = '';
             return;
         }
 
-        const color  = skillSectionGroup(skill) === 'rw' ? RW_COLOR : MATH_COLOR;
-        const points = slice.map(t => ({
-            label: fmtDateShort(t.date),
-            value: (t.missedQuestions || []).filter(q => q.skill === skill).length,
-        }));
-
+        const color    = skillSectionGroup(skill) === 'rw' ? RW_COLOR : MATH_COLOR;
         const maxVal   = Math.max(...points.map(p => p.value), 1);
         const barsHTML = points.map(p => {
             const isMiss = p.value > 0;
@@ -921,20 +1010,54 @@
         const cleanTests  = points.length - missedTests;
         const missRate    = Math.round((missedTests / points.length) * 100);
 
+        const EPS = 0.2;
         let trendHTML = '<span></span>';
-        if (points.length >= 4) {
-            const mid         = Math.floor(points.length / 2);
-            const firstRate   = points.slice(0, mid).filter(p => p.value > 0).length / mid;
-            const secondRate  = points.slice(mid).filter(p => p.value > 0).length / (points.length - mid);
-            const diff = secondRate - firstRate;
-            if (diff <= -0.15)      trendHTML = '<span class="trend-down">↓ Improving</span>';
-            else if (diff >= 0.15)  trendHTML = '<span class="trend-up">↑ Worsening</span>';
-            else                    trendHTML = '<span>→ Steady</span>';
+        if (trend.delta != null) {
+            if (trend.delta <= -EPS)      trendHTML = `<span class="trend-down">↓ Improving <span class="trend-stat-val">(${trend.weighted.toFixed(1)} vs ${trend.pastAvg.toFixed(1)} past avg)</span></span>`;
+            else if (trend.delta >= EPS)  trendHTML = `<span class="trend-up">↑ Worsening <span class="trend-stat-val">(${trend.weighted.toFixed(1)} vs ${trend.pastAvg.toFixed(1)} past avg)</span></span>`;
+            else                          trendHTML = '<span>→ Steady</span>';
         }
 
         metaEl.innerHTML = `
             <span>Missed <span class="trend-stat-val">${totalMisses}×</span> across <span class="trend-stat-val">${missedTests}</span> of <span class="trend-stat-val">${points.length}</span> tests (${missRate}%) &nbsp;·&nbsp; ${cleanTests} clean</span>
             ${trendHTML}`;
+    }
+
+    /*
+     * Overview across every skill: most recent test weighted 40%, average of
+     * all earlier tests weighted 60% (see computeSkillTrend). Only skills
+     * that have actually been missed somewhere in range are considered —
+     * a skill with zero misses has no signal either way.
+     */
+    function renderSkillProgress(tests) {
+        const upEl   = document.getElementById('skillProgressUp');
+        const downEl = document.getElementById('skillProgressDown');
+
+        const entries = ALL_SKILLS.map(skill => {
+            const t = computeSkillTrend(tests, skill);
+            const totalMisses = t.values.reduce((a, b) => a + b, 0);
+            if (t.delta == null || totalMisses === 0) return null;
+            return { skill, delta: t.delta };
+        }).filter(Boolean).filter(e => Math.abs(e.delta) > 0.001);
+
+        const improving = entries.filter(e => e.delta < 0).sort((a, b) => a.delta - b.delta).slice(0, 5);
+        const worsening = entries.filter(e => e.delta > 0).sort((a, b) => b.delta - a.delta).slice(0, 5);
+
+        function rowsHTML(list, kind) {
+            if (list.length === 0) return '<p class="panel-empty">Not enough data yet</p>';
+            const cls   = kind === 'improving' ? 'skill-progress-delta--up' : 'skill-progress-delta--down';
+            const arrow = kind === 'improving' ? '↓' : '↑';
+            return list.map(e => {
+                const esc = e.skill.replace(/"/g, '&quot;');
+                return `<div class="skill-progress-row" data-skill="${esc}" onclick="showSkillDetail(this.dataset.skill)" onmouseenter="hoverSkill(this.dataset.skill)" onmouseleave="hideHoverPreview()">
+                    <span class="skill-progress-name">${e.skill}</span>
+                    <span class="skill-progress-delta ${cls}">${arrow} ${Math.abs(e.delta).toFixed(1)}</span>
+                </div>`;
+            }).join('');
+        }
+
+        upEl.innerHTML   = rowsHTML(improving, 'improving');
+        downEl.innerHTML = rowsHTML(worsening, 'worsening');
     }
 
     function renderBreakdown(tests) {
@@ -1210,6 +1333,7 @@
         renderChart(filtered, currentFilter, allSessions);
         renderTimeLeftChart(filtered);
         renderBreakdown(filtered);
+        renderSkillProgress(filtered);
         renderSkillTrend();
 
         const listEl = document.getElementById('testList');

@@ -163,6 +163,28 @@
         .score-max  { font-size: 0.875rem; font-weight: 400; letter-spacing: -0.02em; color: var(--gray); }
         .score-hint { font-family: 'Libre Baskerville', serif; font-style: italic; font-size: 0.75rem; color: var(--gray-text); margin-top: 0.375rem; }
         .recent-score { font-size: 0.6875rem; font-weight: 600; letter-spacing: -0.01em; color: #4A8C6E; margin-left: 0.5rem; }
+
+        /* ── Action buttons row ── */
+        .action-buttons { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+        .btn-view-history {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9375rem;
+            font-weight: 500;
+            letter-spacing: -0.03em;
+            padding: 0.9375rem 1.5rem;
+            border-radius: 1rem;
+            border: 1.5px solid var(--gray);
+            background: var(--white);
+            color: var(--dark);
+            cursor: pointer;
+            transition: opacity 0.15s;
+            min-height: 3rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        @media (hover: hover) and (pointer: fine) { .btn-view-history:hover { opacity: 0.75; } }
     </style>
 </head>
 <body>
@@ -173,9 +195,9 @@
     <div class="nav-pills">
         <a href="home.html"         class="nav-pill">Home</a>
         <a href="log.html"          class="nav-pill active">Log Session</a>
-        <a href="test.html"         class="nav-pill">Practice Tests</a>
-        <a href="test-history.html" class="nav-pill">Test History</a>
         <a href="history.html"      class="nav-pill">Study History</a>
+        <a href="test.html"         class="nav-pill">Log Test</a>
+        <a href="test-history.html" class="nav-pill">Test History</a>
         <a href="sync.html"         class="nav-pill">Sync</a>
     </div>
 </nav>
@@ -196,7 +218,13 @@
         </svg>
         <span class="bn-label">Log</span>
     </a>
-    <a href="test.html" class="bn-item" aria-label="Practice Tests">
+    <a href="history.html" class="bn-item" aria-label="Study History">
+        <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/>
+        </svg>
+        <span class="bn-label">Study</span>
+    </a>
+    <a href="test.html" class="bn-item" aria-label="Log Test">
         <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
             <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
             <rect x="9" y="3" width="6" height="4" rx="1"/>
@@ -211,12 +239,6 @@
             <rect x="17" y="3" width="4" height="18" rx="1"/>
         </svg>
         <span class="bn-label">T. Hist</span>
-    </a>
-    <a href="history.html" class="bn-item" aria-label="Study History">
-        <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/>
-        </svg>
-        <span class="bn-label">Study</span>
     </a>
     <a href="sync.html" class="bn-item" aria-label="Sync">
         <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
@@ -281,14 +303,11 @@
             <p class="score-hint">Rate your focus, pace, and energy.</p>
         </div>
 
-        <button class="btn-submit" onclick="logSession()">Log Session</button>
+        <div class="action-buttons">
+            <button class="btn-submit" onclick="logSession()">Log Session</button>
+            <a href="history.html" class="btn-view-history" id="viewHistoryBtn" style="display:none;">View Study History</a>
+        </div>
     </div>
-
-    <hr class="divider">
-
-    <p class="recent-label">Recent sessions</p>
-    <div class="recent-list" id="recentList"></div>
-    <a href="history.html" class="see-all" id="seeAllLink" style="display:none;">See all →</a>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -380,37 +399,8 @@
         document.getElementById('minutesInput').value = '';
         document.getElementById('scoreInput').value   = '';
 
-        await renderRecent();
+        document.getElementById('viewHistoryBtn').style.display = 'inline-flex';
         showToast(`Session logged — ${fmtDuration(duration)}`);
-    }
-
-    /* ── Recent list ── */
-    async function renderRecent() {
-        const sessions = (await SAT_STORAGE.getSessions())
-            .sort((a, b) => new Date(b.date) - new Date(a.date));
-
-        const listEl = document.getElementById('recentList');
-        const linkEl = document.getElementById('seeAllLink');
-
-        if (sessions.length === 0) {
-            listEl.innerHTML = '';
-            linkEl.style.display = 'none';
-            return;
-        }
-
-        listEl.innerHTML = sessions.slice(0, RECENT_MAX).map(s => {
-            const scoreStr = s.score != null ? `<span class="recent-score">${s.score}/10</span>` : '';
-            return `
-            <div class="recent-row">
-                <div>
-                    <div class="recent-date">${fmtDate(s.date)}${scoreStr}</div>
-                    <div class="recent-time">Started at ${fmtTime(s.date)}</div>
-                </div>
-                <div class="recent-duration">${fmtDuration(s.duration)}</div>
-            </div>`;
-        }).join('');
-
-        linkEl.style.display = sessions.length > RECENT_MAX ? 'inline-block' : 'none';
     }
 
     /* ── Toast ── */
@@ -442,8 +432,6 @@
 
         document.getElementById('hoursInput').addEventListener('input', updateStartTime);
         document.getElementById('minutesInput').addEventListener('input', updateStartTime);
-
-        await renderRecent();
     });
 </script>
 </body>

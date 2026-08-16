@@ -70,7 +70,7 @@ body {
     position: absolute;
     background: var(--dark);
     border-radius: 6.25rem;
-    transition: left 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition: left 0.4s cubic-bezier(0.34, 1.1, 0.64, 1), width 0.4s cubic-bezier(0.34, 1.1, 0.64, 1);
     pointer-events: none;
     z-index: 1;
 }
@@ -114,7 +114,7 @@ body {
     border-radius: 6.25rem;
     color: var(--gray-text);
     text-decoration: none;
-    transition: color 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition: color 0.3s cubic-bezier(0.34, 1.1, 0.64, 1);
     white-space: nowrap;
     line-height: 1;
     flex-shrink: 0;

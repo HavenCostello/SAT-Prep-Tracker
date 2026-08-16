@@ -399,6 +399,7 @@
         document.getElementById('minutesInput').value = '';
         document.getElementById('scoreInput').value   = '';
 
+        localStorage.removeItem('logForm');
         document.getElementById('viewHistoryBtn').style.display = 'inline-flex';
         showToast(`Session logged — ${fmtDuration(duration)}`);
     }
@@ -413,12 +414,53 @@
         toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
     }
 
+    /* ── Save/load form state ── */
+    function saveFormState() {
+        localStorage.setItem('logForm', JSON.stringify({
+            date: document.getElementById('dateInput').value,
+            startTime: document.getElementById('startTimeInput').value,
+            hours: document.getElementById('hoursInput').value,
+            minutes: document.getElementById('minutesInput').value,
+            score: document.getElementById('scoreInput').value
+        }));
+    }
+    function loadFormState() {
+        const saved = localStorage.getItem('logForm');
+        if (saved) {
+            try {
+                const state = JSON.parse(saved);
+                document.getElementById('dateInput').value = state.date || todayValue();
+                document.getElementById('startTimeInput').value = state.startTime || '';
+                document.getElementById('hoursInput').value = state.hours || '';
+                document.getElementById('minutesInput').value = state.minutes || '';
+                document.getElementById('scoreInput').value = state.score || '';
+            } catch (e) {
+                document.getElementById('dateInput').value = todayValue();
+            }
+        }
+    }
+
     /* ── Boot ── */
     document.addEventListener('DOMContentLoaded', async () => {
-        document.getElementById('dateInput').value = todayValue();
-        const now = new Date();
-        document.getElementById('startTimeInput').value =
-            `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+        loadFormState();
+
+        // If no saved date, use today
+        if (!document.getElementById('dateInput').value) {
+            document.getElementById('dateInput').value = todayValue();
+        }
+
+        // If no saved time, use current time
+        if (!document.getElementById('startTimeInput').value) {
+            const now = new Date();
+            document.getElementById('startTimeInput').value =
+                `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+        }
+
+        // Save on input changes
+        ['dateInput', 'startTimeInput', 'hoursInput', 'minutesInput', 'scoreInput'].forEach(id => {
+            document.getElementById(id).addEventListener('change', saveFormState);
+            document.getElementById(id).addEventListener('input', saveFormState);
+        });
 
         document.getElementById('minutesInput').addEventListener('blur', function () {
             let v = parseInt(this.value) || 0;
@@ -428,6 +470,7 @@
                 this.value = v % 60;
             }
             updateStartTime();
+            saveFormState();
         });
 
         document.getElementById('hoursInput').addEventListener('input', updateStartTime);

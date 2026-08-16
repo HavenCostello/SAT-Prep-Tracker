@@ -532,6 +532,21 @@
         showHP(`<div class="hp-eyebrow">${fmtDateShort(d.date)}</div><div class="hp-hero">${fmtDurStr(d.secs)}</div><div class="hp-sub">total study time</div>${focLine}<div class="hp-link">→ Study History</div>`);
     }
 
+    /* ── Nav indicator animation ── */
+    function updateNavIndicator() {
+        const navPills = document.querySelector('.nav-pills');
+        const activePill = document.querySelector('.nav-pill.active');
+        if (!navPills || !activePill) return;
+
+        const pillRect = activePill.getBoundingClientRect();
+        const containerRect = navPills.getBoundingClientRect();
+        const left = pillRect.left - containerRect.left;
+        const width = pillRect.width;
+
+        navPills.style.setProperty('--indicator-left', `${left}px`);
+        navPills.style.setProperty('--indicator-width', `${width}px`);
+    }
+
     /* ── Init ── */
     async function init() {
         const [sessions, tests] = await Promise.all([SAT_STORAGE.getSessions(), SAT_STORAGE.getTests()]);
@@ -540,7 +555,11 @@
         renderScoreChart(tests);
         renderStudyChart(sessions);
     }
-    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('DOMContentLoaded', () => {
+        init();
+        updateNavIndicator();
+        window.addEventListener('resize', updateNavIndicator);
+    });
     window.addEventListener('sat:synced', init);
 </script>
 </body>

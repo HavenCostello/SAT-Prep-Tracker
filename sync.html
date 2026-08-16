@@ -445,6 +445,26 @@
         clearTimeout(toastTimer);
         toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
     }
+
+    /* ── Nav indicator animation ── */
+    function updateNavIndicator() {
+        const navPills = document.querySelector('.nav-pills');
+        const activePill = document.querySelector('.nav-pill.active');
+        if (!navPills || !activePill) return;
+
+        const pillRect = activePill.getBoundingClientRect();
+        const containerRect = navPills.getBoundingClientRect();
+        const left = pillRect.left - containerRect.left;
+        const width = pillRect.width;
+
+        navPills.style.setProperty('--indicator-left', `${left}px`);
+        navPills.style.setProperty('--indicator-width', `${width}px`);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        updateNavIndicator();
+        window.addEventListener('resize', updateNavIndicator);
+    });
 </script>
 </body>
 </html>

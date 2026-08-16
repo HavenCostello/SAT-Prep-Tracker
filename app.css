@@ -78,8 +78,28 @@ body {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
+    position: relative;
 }
 .nav-pills::-webkit-scrollbar { display: none; }
+
+/* Sliding indicator */
+.nav-pills {
+    --indicator-left: 0;
+    --indicator-width: 0;
+}
+.nav-pills::before {
+    content: '';
+    position: absolute;
+    left: var(--indicator-left);
+    top: 0.1875rem;
+    width: var(--indicator-width);
+    height: calc(100% - 0.375rem);
+    background: var(--dark);
+    border-radius: 6.25rem;
+    transition: left 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    pointer-events: none;
+    z-index: 0;
+}
 
 .nav-pill {
     font-family: 'Inter', sans-serif;
@@ -90,12 +110,14 @@ body {
     border-radius: 6.25rem;
     color: var(--gray-text);
     text-decoration: none;
-    transition: background 0.15s, color 0.15s;
+    transition: color 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     white-space: nowrap;
     line-height: 1;
     flex-shrink: 0;
+    position: relative;
+    z-index: 1;
 }
-.nav-pill.active { background: var(--dark); color: var(--white); }
+.nav-pill.active { color: var(--white); }
 
 @media (hover: hover) and (pointer: fine) {
     .nav-pill:hover:not(.active) { background: rgba(30,30,30,0.06); color: var(--dark); }

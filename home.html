@@ -571,6 +571,35 @@
         sessionStorage.setItem('navActiveHref', currentHref);
     }
 
+    /* ── Drag-to-scroll (mouse) for nav pills ── */
+    function setupNavDrag() {
+        const navPills = document.querySelector('.nav-pills');
+        if (!navPills) return;
+        let isDown = false, startX = 0, startScroll = 0, dragged = false;
+
+        navPills.addEventListener('mousedown', (e) => {
+            isDown = true;
+            dragged = false;
+            navPills.classList.add('dragging');
+            startX = e.pageX;
+            startScroll = navPills.scrollLeft;
+        });
+        window.addEventListener('mouseup', () => {
+            isDown = false;
+            navPills.classList.remove('dragging');
+        });
+        window.addEventListener('mousemove', (e) => {
+            if (!isDown) return;
+            const delta = e.pageX - startX;
+            if (Math.abs(delta) > 4) dragged = true;
+            navPills.scrollLeft = startScroll - delta;
+        });
+        // Suppress the click-navigation that would otherwise fire right after a drag
+        navPills.addEventListener('click', (e) => {
+            if (dragged) { e.preventDefault(); e.stopPropagation(); }
+        }, true);
+    }
+
     /* ── Init ── */
     async function init() {
         const [sessions, tests] = await Promise.all([SAT_STORAGE.getSessions(), SAT_STORAGE.getTests()]);
@@ -582,6 +611,7 @@
     document.addEventListener('DOMContentLoaded', () => {
         init();
         updateNavIndicator();
+        setupNavDrag();
         window.addEventListener('resize', updateNavIndicator);
     });
     window.addEventListener('sat:synced', init);

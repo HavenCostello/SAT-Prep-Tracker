@@ -289,7 +289,6 @@
 <nav class="top-nav">
     <a href="home.html" class="brand">SAT Prep</a>
     <div class="nav-pills">
-        <span class="nav-indicator" aria-hidden="true"></span>
         <a href="home.html"         class="nav-pill">Home</a>
         <a href="log.html"        class="nav-pill">Log Session</a>
         <a href="history.html"      class="nav-pill">Session History</a>
@@ -297,6 +296,7 @@
         <a href="test-history.html" class="nav-pill">Test History</a>
         <a href="sync.html"         class="nav-pill">Sync</a>
     </div>
+    <span class="nav-indicator" aria-hidden="true"></span>
 </nav>
 
 <!-- Bottom nav (mobile) -->
@@ -812,20 +812,36 @@
     }
 
     /* ── Boot ── */
-    /* ── Nav indicator animation (slides across page loads) ── */
+    /* ── Nav indicator animation (slides across page loads, never clipped) ──
+       Positioned relative to .top-nav (not .nav-pills), since .nav-pills
+       clips its contents (overflow-x: auto for the scrollable pill strip),
+       and the bouncy overshoot easing briefly travels past the edge of the
+       first/last pill mid-slide. .top-nav never clips, so the indicator
+       stays visible above every background even during that overshoot. */
     function positionIndicator(pillEl, animate) {
+        const topNav = document.querySelector('.top-nav');
         const navPills = document.querySelector('.nav-pills');
-        if (!navPills || !pillEl) return;
+        const indicator = document.querySelector('.nav-indicator');
+        if (!topNav || !navPills || !indicator || !pillEl) return;
+
         const pillRect = pillEl.getBoundingClientRect();
-        const containerRect = navPills.getBoundingClientRect();
+        const navPillsRect = navPills.getBoundingClientRect();
+        const containerRect = topNav.getBoundingClientRect();
+        const padTop = parseFloat(getComputedStyle(navPills).paddingTop) || 0;
+
         const left = pillRect.left - containerRect.left;
         const width = pillRect.width;
-        if (!animate) navPills.classList.add('no-transition');
-        navPills.style.setProperty('--indicator-left', `${left}px`);
-        navPills.style.setProperty('--indicator-width', `${width}px`);
+        const top = navPillsRect.top - containerRect.top + padTop;
+        const height = navPillsRect.height - padTop * 2;
+
+        if (!animate) indicator.classList.add('no-transition');
+        indicator.style.left = `${left}px`;
+        indicator.style.width = `${width}px`;
+        indicator.style.top = `${top}px`;
+        indicator.style.height = `${height}px`;
         if (!animate) {
-            void navPills.offsetWidth; // force reflow so the next change transitions
-            navPills.classList.remove('no-transition');
+            void indicator.offsetWidth; // force reflow so the next change transitions
+            indicator.classList.remove('no-transition');
         }
     }
     function updateNavIndicator() {
@@ -849,6 +865,13 @@
             positionIndicator(activePill, false);
         }
         sessionStorage.setItem('navActiveHref', currentHref);
+
+        // Keep the indicator glued to the active pill while the strip is scrolled/dragged
+        const navPills = document.querySelector('.nav-pills');
+        if (navPills && !navPills.dataset.indicatorScrollBound) {
+            navPills.addEventListener('scroll', () => positionIndicator(activePill, false));
+            navPills.dataset.indicatorScrollBound = '1';
+        }
     }
 
     /* ── Drag-to-scroll (mouse) for nav pills ── */

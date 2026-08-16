@@ -57,6 +57,25 @@ body {
     z-index: 100;
 }
 
+/* Sliding indicator — lives here, NOT inside .nav-pills. .nav-pills scrolls
+   (overflow-x: auto) and clips its contents at its own edge; the indicator's
+   bouncy overshoot easing briefly travels past that edge at the first/last
+   pill, so if it were a child of .nav-pills it would get clipped there,
+   exposing .top-nav's plain background underneath. Positioned relative to
+   .top-nav (which never clips) it can overshoot freely and always stays
+   visible on top of every background behind it. JS keeps it aligned to the
+   active pill's on-screen position, so it still tracks .nav-pills' scroll
+   offset correctly. */
+.nav-indicator {
+    position: absolute;
+    background: var(--dark);
+    border-radius: 6.25rem;
+    transition: left 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    pointer-events: none;
+    z-index: 1;
+}
+.nav-indicator.no-transition { transition: none; }
+
 .brand {
     font-size: 0.8125rem;
     font-weight: 600;
@@ -79,31 +98,12 @@ body {
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     position: relative;
-    isolation: isolate;    /* defensive: keep this bar out of the parent's backdrop-filter compositing */
     cursor: grab;
     -webkit-user-select: none;
     user-select: none;
-    --indicator-left: 0;
-    --indicator-width: 0;
 }
 .nav-pills::-webkit-scrollbar { display: none; }
 .nav-pills.dragging { cursor: grabbing; scroll-behavior: auto; }
-
-/* Sliding indicator — a real element (not ::before) so paint order is guaranteed by
-   DOM position rather than by z-index fighting the parent's backdrop-filter layer.
-   It's the first child, so it always paints below every .nav-pill that follows it. */
-.nav-indicator {
-    position: absolute;
-    left: var(--indicator-left);
-    top: 0.1875rem;
-    width: var(--indicator-width);
-    height: calc(100% - 0.375rem);
-    background: var(--dark);
-    border-radius: 6.25rem;
-    transition: left 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-    pointer-events: none;
-}
-.nav-pills.no-transition .nav-indicator { transition: none; }
 
 .nav-pill {
     font-family: 'Inter', sans-serif;
@@ -118,7 +118,8 @@ body {
     white-space: nowrap;
     line-height: 1;
     flex-shrink: 0;
-    position: relative;    /* paints on top of .nav-indicator purely by following it in DOM order */
+    position: relative;
+    z-index: 2;    /* always above .nav-indicator (z-index: 1), which lives outside .nav-pills */
 }
 .nav-pill.active { color: var(--white); }
 

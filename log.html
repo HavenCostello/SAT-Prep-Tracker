@@ -476,19 +476,43 @@
         document.getElementById('hoursInput').addEventListener('input', updateStartTime);
         document.getElementById('minutesInput').addEventListener('input', updateStartTime);
 
-        // Nav indicator animation
-        function updateNavIndicator() {
+        // Nav indicator animation (slides across page loads)
+        function positionIndicator(pillEl, animate) {
             const navPills = document.querySelector('.nav-pills');
-            const activePill = document.querySelector('.nav-pill.active');
-            if (!navPills || !activePill) return;
-
-            const pillRect = activePill.getBoundingClientRect();
+            if (!navPills || !pillEl) return;
+            const pillRect = pillEl.getBoundingClientRect();
             const containerRect = navPills.getBoundingClientRect();
             const left = pillRect.left - containerRect.left;
             const width = pillRect.width;
-
+            if (!animate) navPills.classList.add('no-transition');
             navPills.style.setProperty('--indicator-left', `${left}px`);
             navPills.style.setProperty('--indicator-width', `${width}px`);
+            if (!animate) {
+                void navPills.offsetWidth; // force reflow so the next change transitions
+                navPills.classList.remove('no-transition');
+            }
+        }
+        function updateNavIndicator() {
+            const activePill = document.querySelector('.nav-pill.active');
+            if (!activePill) return;
+            const currentHref = activePill.getAttribute('href');
+            const prevHref = sessionStorage.getItem('navActiveHref');
+
+            if (prevHref && prevHref !== currentHref) {
+                const prevPill = Array.from(document.querySelectorAll('.nav-pill'))
+                    .find(p => p.getAttribute('href') === prevHref);
+                if (prevPill) {
+                    positionIndicator(prevPill, false);
+                    requestAnimationFrame(() => {
+                        requestAnimationFrame(() => positionIndicator(activePill, true));
+                    });
+                } else {
+                    positionIndicator(activePill, false);
+                }
+            } else {
+                positionIndicator(activePill, false);
+            }
+            sessionStorage.setItem('navActiveHref', currentHref);
         }
         updateNavIndicator();
         window.addEventListener('resize', updateNavIndicator);

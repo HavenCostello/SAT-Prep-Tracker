@@ -684,6 +684,27 @@
         toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
     }
 
+    /* ── Align each white reveal label to its real pill's exact measured
+       position. Two independently flex-laid-out rows of the same text can
+       land a fraction of a pixel apart — enough for the antialiased glyph
+       edges to leave a faint gray ghost where they don't perfectly overlap.
+       Copying each real pill's own rect removes that guesswork entirely. */
+    function alignRevealLabels() {
+        const navPills = document.querySelector('.nav-pills');
+        const reveal = document.querySelector('.nav-pill-reveal');
+        if (!navPills || !reveal) return;
+        const pills = Array.from(navPills.querySelectorAll('.nav-pill'));
+        const labels = Array.from(reveal.querySelectorAll('.nav-pill-label'));
+        const revealRect = reveal.getBoundingClientRect();
+        pills.forEach((pill, i) => {
+            const label = labels[i];
+            if (!label) return;
+            const pillRect = pill.getBoundingClientRect();
+            label.style.left = `${pillRect.left - revealRect.left}px`;
+            label.style.width = `${pillRect.width}px`;
+        });
+    }
+
     /* ── Nav indicator animation (slides across page loads, never clipped) ──
        Positioned relative to .top-nav (not .nav-pills), since .nav-pills
        clips its contents (overflow-x: auto for the scrollable pill strip),
@@ -793,9 +814,16 @@
 
     document.addEventListener('DOMContentLoaded', () => {
         render();
+        alignRevealLabels();
         updateNavIndicator();
         setupNavDrag();
-        window.addEventListener('resize', updateNavIndicator);
+        window.addEventListener('resize', () => { alignRevealLabels(); updateNavIndicator(); });
+        // Re-measure once the web font actually finishes loading — at DOMContentLoaded
+        // it's often still using a fallback font, so the initial measurement can be
+        // slightly off from where the real pills land once Inter swaps in.
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(() => { alignRevealLabels(); updateNavIndicator(); });
+        }
     });
     window.addEventListener('sat:synced', () => render());
 </script>

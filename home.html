@@ -32,6 +32,66 @@
         .priority-subtitle { font-family: 'Libre Baskerville', serif; font-style: italic; font-size: 0.75rem; color: var(--gray-mid); margin-bottom: 1.125rem; }
         .priority-empty    { font-family: 'Libre Baskerville', serif; font-style: italic; font-size: 0.8125rem; color: var(--gray-mid); }
 
+        /* ── Priority body: ranked list + vertical bar chart ── */
+        .priority-body { display: flex; flex-direction: column; gap: 1.375rem; }
+
+        /* Ranked list */
+        .priority-list { display: flex; flex-direction: column; }
+        .priority-row {
+            display: flex; align-items: center; gap: 0.625rem;
+            padding: 0.625rem 0.125rem;
+            min-height: 2.75rem;
+            border-bottom: 1px solid rgba(30,30,30,0.08);
+            cursor: pointer;
+            transition: opacity 0.15s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .priority-row:last-child { border-bottom: none; }
+        @media (hover: hover) and (pointer: fine) { .priority-row:hover { opacity: 0.6; } }
+        .priority-row-rank {
+            font-family: 'Libre Baskerville', serif; font-style: italic;
+            font-size: 0.8125rem; color: var(--gray-mid);
+            width: 1rem; flex-shrink: 0; text-align: center;
+        }
+        .priority-row-dot  { width: 0.5rem; height: 0.5rem; border-radius: 50%; flex-shrink: 0; }
+        .priority-row-name {
+            font-size: 0.8125rem; font-weight: 500; letter-spacing: -0.01em; color: var(--dark);
+            flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .priority-row-count { font-size: 0.75rem; color: var(--gray-text); flex-shrink: 0; font-variant-numeric: tabular-nums; }
+
+        /* Vertical bar chart — every category, top 5 colored */
+        .priority-chart-label {
+            font-size: 0.625rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase;
+            color: var(--gray-mid); margin-bottom: 0.625rem;
+        }
+        .priority-chart { height: clamp(6.5rem, 26vw, 8.75rem); position: relative; }
+        .vbar-baseline { position: absolute; left: 0; right: 0; bottom: 0; height: 1.5px; background: var(--gray); }
+        .vbar-scroll {
+            position: absolute; inset: 0; overflow-x: auto; overflow-y: hidden;
+            -webkit-overflow-scrolling: touch; scrollbar-width: none;
+        }
+        .vbar-scroll::-webkit-scrollbar { display: none; }
+        .vbar-row { height: 100%; width: max-content; min-width: 100%; display: flex; align-items: flex-end; gap: 4px; }
+        .vbar-item { flex: 0 0 clamp(1rem, 4.5vw, 1.375rem); width: clamp(1rem, 4.5vw, 1.375rem); height: 100%; display: flex; align-items: flex-end; }
+        .vbar-inner {
+            width: 100%; height: 0; border-radius: 3px 3px 0 0;
+            transition: height 0.45s cubic-bezier(0.4,0,0.2,1), opacity 0.15s;
+            cursor: pointer; position: relative;
+        }
+        .vbar-inner:not(.is-top) { opacity: 0.45; }
+        @media (hover: hover) and (pointer: fine) { .vbar-inner:hover { opacity: 1 !important; } }
+
+        @media (min-width: 768px) {
+            .priority-body { flex-direction: row; align-items: stretch; gap: 2.25rem; }
+            .priority-list { flex: 1.05; min-width: 0; }
+            .priority-chart-wrap {
+                flex: 1; min-width: 0; display: flex; flex-direction: column;
+                padding-left: 1.75rem; border-left: 1px solid rgba(30,30,30,0.08);
+            }
+            .priority-chart { flex: 1; height: auto; min-height: 8.75rem; }
+        }
+
         /* ── Action buttons ── */
         .action-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 0.5rem; }
         .action-btn {
@@ -65,6 +125,14 @@
         <a href="test.html"         class="nav-pill">Log Test</a>
         <a href="test-history.html" class="nav-pill">Test History</a>
         <a href="sync.html"         class="nav-pill">Sync</a>
+        <div class="nav-pill-reveal" aria-hidden="true">
+            <span class="nav-pill-label">Home</span>
+            <span class="nav-pill-label">Log Session</span>
+            <span class="nav-pill-label">Session History</span>
+            <span class="nav-pill-label">Log Test</span>
+            <span class="nav-pill-label">Test History</span>
+            <span class="nav-pill-label">Sync</span>
+        </div>
     </div>
     <span class="nav-indicator" aria-hidden="true"></span>
 </nav>
@@ -215,6 +283,7 @@
     let _skillW      = {};
     let _skillSecs   = {};
     let _skillCounts = {};
+    let _skillTotalW = 0;
     let _ydaySnap    = { secs: 0, count: 0, focAvg: null };
     let _avgSnap     = { secsPerDay: 0, activeDays: 0, focAvg: null };
 
@@ -312,45 +381,64 @@
             });
         });
 
-        const top = Object.entries(_skillW).sort((a, b) => b[1] - a[1]).slice(0, 5);
-        if (top.length === 0) {
+        const all = Object.entries(_skillW).sort((a, b) => b[1] - a[1]);
+        if (all.length === 0) {
             el.innerHTML = '<p class="priority-empty">No practice tests logged yet</p>';
             document.getElementById('priorityMeta').textContent = '';
             return;
         }
 
-        document.getElementById('priorityMeta').textContent = `${top.length} skill${top.length !== 1 ? 's' : ''}`;
-        const totalW = top.reduce((s, [, w]) => s + w, 0);
+        const top5   = all.slice(0, 5);
+        const totalW = all.reduce((s, [, w]) => s + w, 0);
+        const maxW   = all[0][1];
+        _skillTotalW = totalW;
 
-        const segsHTML = top.map(([skill, w]) => {
-            const sc    = _skillSecs[skill] || { rw: 0, math: 0 };
-            const color = sc.rw >= sc.math ? RW_COLOR : MATH_COLOR;
-            const pct   = (w / totalW * 100).toFixed(2);
-            const esc   = skill.replace(/"/g, '&quot;');
-            return `<div class="stacked-seg" data-w="${pct}" style="background:${color};width:0"
-                        onclick="location.href='test-history.html'"
-                        onmouseenter="hoverSkill('${esc}')" onmouseleave="hideHP()"></div>`;
-        }).join('');
+        document.getElementById('priorityMeta').textContent = all.length > 5
+            ? `Top 5 of ${all.length} categories`
+            : `${all.length} skill${all.length !== 1 ? 's' : ''}`;
 
-        const legendHTML = top.map(([skill]) => {
+        const rowsHTML = top5.map(([skill, w], i) => {
             const sc    = _skillSecs[skill] || { rw: 0, math: 0 };
             const color = sc.rw >= sc.math ? RW_COLOR : MATH_COLOR;
             const esc   = skill.replace(/"/g, '&quot;');
-            return `<span class="stacked-legend-item"
+            return `<div class="priority-row"
                         onclick="location.href='test-history.html'"
                         onmouseenter="hoverSkill('${esc}')" onmouseleave="hideHP()">
-                <span class="stacked-legend-pip" style="background:${color}"></span>${skill}
-                <span class="stacked-legend-count">${_skillCounts[skill]}×</span>
-            </span>`;
+                <span class="priority-row-rank">${i + 1}</span>
+                <span class="priority-row-dot" style="background:${color}"></span>
+                <span class="priority-row-name">${skill}</span>
+                <span class="priority-row-count">${_skillCounts[skill]}×</span>
+            </div>`;
+        }).join('');
+
+        const barsHTML = all.map(([skill, w], i) => {
+            const sc     = _skillSecs[skill] || { rw: 0, math: 0 };
+            const isTop  = i < 5;
+            const color  = isTop ? (sc.rw >= sc.math ? RW_COLOR : MATH_COLOR) : 'var(--gray-mid)';
+            const hPct   = (w / maxW * 100).toFixed(1);
+            const esc    = skill.replace(/"/g, '&quot;');
+            return `<div class="vbar-item">
+                <div class="vbar-inner${isTop ? ' is-top' : ''}" data-h="${hPct}" style="height:0;background:${color}"
+                     onclick="location.href='test-history.html'"
+                     onmouseenter="hoverSkill('${esc}')" onmouseleave="hideHP()"></div>
+            </div>`;
         }).join('');
 
         el.innerHTML = `
-            <div class="stacked-prop-bar">${segsHTML}</div>
-            <div class="stacked-legend">${legendHTML}</div>`;
+            <div class="priority-body">
+                <div class="priority-list">${rowsHTML}</div>
+                <div class="priority-chart-wrap">
+                    <p class="priority-chart-label">All categories &middot; top 5 highlighted</p>
+                    <div class="priority-chart">
+                        <div class="vbar-baseline"></div>
+                        <div class="vbar-scroll"><div class="vbar-row">${barsHTML}</div></div>
+                    </div>
+                </div>
+            </div>`;
 
         requestAnimationFrame(() => requestAnimationFrame(() => {
-            el.querySelectorAll('.stacked-seg[data-w]').forEach(b => {
-                b.style.width = b.getAttribute('data-w') + '%';
+            el.querySelectorAll('.vbar-inner[data-h]').forEach(b => {
+                b.style.height = b.getAttribute('data-h') + '%';
             });
         }));
     }
@@ -517,9 +605,11 @@
         const raw   = _skillCounts[skill] || 0;
         const color = sc.rw >= sc.math ? RW_COLOR : MATH_COLOR;
         const subj  = sc.rw >= sc.math ? 'R&amp;W' : 'Math';
+        const pct   = _skillTotalW > 0 && _skillW[skill] != null ? (_skillW[skill] / _skillTotalW * 100).toFixed(1) : null;
         const rwRow  = sc.rw   > 0 ? `<div class="hp-row"><span class="hp-row-name">R&amp;W</span><span class="hp-row-val">${sc.rw}×</span></div>` : '';
         const mathRow= sc.math > 0 ? `<div class="hp-row"><span class="hp-row-name">Math</span><span class="hp-row-val">${sc.math}×</span></div>` : '';
-        showHP(`<div class="hp-eyebrow" style="color:${color}">${subj}</div><div class="hp-hero">${raw}<span class="hp-hero-denom" style="font-size:15px">×</span></div><div class="hp-sub">${skill}</div><hr class="hp-divider">${rwRow}${mathRow}<div class="hp-link">→ Test History</div>`);
+        const pctRow = pct != null ? `<div class="hp-row"><span class="hp-row-name">Share of misses</span><span class="hp-row-val">${pct}%</span></div>` : '';
+        showHP(`<div class="hp-eyebrow" style="color:${color}">${subj}</div><div class="hp-hero">${raw}<span class="hp-hero-denom" style="font-size:15px">×</span></div><div class="hp-sub">${skill}</div><hr class="hp-divider">${rwRow}${mathRow}${pctRow}<div class="hp-link">→ Test History</div>`);
     }
     function hoverScoreBar(idx) {
         const t = _homeTests[idx]; if (!t) return;
@@ -543,6 +633,7 @@
         const topNav = document.querySelector('.top-nav');
         const navPills = document.querySelector('.nav-pills');
         const indicator = document.querySelector('.nav-indicator');
+        const reveal = document.querySelector('.nav-pill-reveal');
         if (!topNav || !navPills || !indicator || !pillEl) return;
 
         const pillRect = pillEl.getBoundingClientRect();
@@ -555,14 +646,29 @@
         const top = navPillsRect.top - containerRect.top + padTop;
         const height = navPillsRect.height - padTop * 2;
 
-        if (!animate) indicator.classList.add('no-transition');
+        if (!animate) {
+            indicator.classList.add('no-transition');
+            if (reveal) reveal.classList.add('no-transition');
+        }
         indicator.style.left = `${left}px`;
         indicator.style.width = `${width}px`;
         indicator.style.top = `${top}px`;
         indicator.style.height = `${height}px`;
+
+        // White-text reveal: clip window mirrors the indicator's own
+        // left/width (same transition duration/easing), so the pill text
+        // only reads white exactly where the indicator currently covers it.
+        if (reveal) {
+            const revealRect = reveal.getBoundingClientRect();
+            const revealLeft = pillRect.left - revealRect.left;
+            const rightInset = revealRect.width - revealLeft - width;
+            reveal.style.clipPath = `inset(0 ${Math.max(0, rightInset)}px 0 ${Math.max(0, revealLeft)}px)`;
+        }
+
         if (!animate) {
             void indicator.offsetWidth; // force reflow so the next change transitions
             indicator.classList.remove('no-transition');
+            if (reveal) { void reveal.offsetWidth; reveal.classList.remove('no-transition'); }
         }
     }
     function updateNavIndicator() {

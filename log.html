@@ -199,6 +199,14 @@
         <a href="test.html"         class="nav-pill">Log Test</a>
         <a href="test-history.html" class="nav-pill">Test History</a>
         <a href="sync.html"         class="nav-pill">Sync</a>
+        <div class="nav-pill-reveal" aria-hidden="true">
+            <span class="nav-pill-label">Home</span>
+            <span class="nav-pill-label">Log Session</span>
+            <span class="nav-pill-label">Session History</span>
+            <span class="nav-pill-label">Log Test</span>
+            <span class="nav-pill-label">Test History</span>
+            <span class="nav-pill-label">Sync</span>
+        </div>
     </div>
     <span class="nav-indicator" aria-hidden="true"></span>
 </nav>
@@ -487,6 +495,7 @@
             const topNav = document.querySelector('.top-nav');
             const navPills = document.querySelector('.nav-pills');
             const indicator = document.querySelector('.nav-indicator');
+            const reveal = document.querySelector('.nav-pill-reveal');
             if (!topNav || !navPills || !indicator || !pillEl) return;
 
             const pillRect = pillEl.getBoundingClientRect();
@@ -499,14 +508,29 @@
             const top = navPillsRect.top - containerRect.top + padTop;
             const height = navPillsRect.height - padTop * 2;
 
-            if (!animate) indicator.classList.add('no-transition');
+            if (!animate) {
+                indicator.classList.add('no-transition');
+                if (reveal) reveal.classList.add('no-transition');
+            }
             indicator.style.left = `${left}px`;
             indicator.style.width = `${width}px`;
             indicator.style.top = `${top}px`;
             indicator.style.height = `${height}px`;
+
+            // White-text reveal: clip window mirrors the indicator's own
+            // left/width (same transition duration/easing), so the pill text
+            // only reads white exactly where the indicator currently covers it.
+            if (reveal) {
+                const revealRect = reveal.getBoundingClientRect();
+                const revealLeft = pillRect.left - revealRect.left;
+                const rightInset = revealRect.width - revealLeft - width;
+                reveal.style.clipPath = `inset(0 ${Math.max(0, rightInset)}px 0 ${Math.max(0, revealLeft)}px)`;
+            }
+
             if (!animate) {
                 void indicator.offsetWidth; // force reflow so the next change transitions
                 indicator.classList.remove('no-transition');
+                if (reveal) { void reveal.offsetWidth; reveal.classList.remove('no-transition'); }
             }
         }
         function updateNavIndicator() {

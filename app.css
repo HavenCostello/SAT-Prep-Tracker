@@ -76,6 +76,39 @@ body {
 }
 .nav-indicator.no-transition { transition: none; }
 
+/* White text reveal — an exact duplicate of the pill row, in white, layered
+   on top of the (always gray) real pill text and clipped with clip-path.
+   The clip window uses the SAME transition duration/easing as .nav-indicator,
+   driven by the same underlying left/width numbers, so the white text is only
+   ever visible exactly where the indicator currently sits — it turns white
+   continuously as the slider passes over it, not on a separate timer that
+   can finish before the slider visually arrives. */
+.nav-pill-reveal {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    gap: 0.125rem;
+    pointer-events: none;
+    clip-path: inset(0 100% 0 0);
+    transition: clip-path 0.4s cubic-bezier(0.34, 1.1, 0.64, 1);
+    z-index: 3;    /* above .nav-pill (z-index: 2), so the white text paints over the gray text */
+}
+.nav-pill-reveal.no-transition { transition: none; }
+.nav-pill-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    letter-spacing: -0.03em;
+    padding: 0.4375rem 0.9375rem;
+    color: var(--white);
+    white-space: nowrap;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
 .brand {
     font-size: 0.8125rem;
     font-weight: 600;
@@ -121,7 +154,10 @@ body {
     position: relative;
     z-index: 2;    /* always above .nav-indicator (z-index: 1), which lives outside .nav-pills */
 }
-.nav-pill.active { color: var(--white); }
+/* No .active color override here — the real pill text stays gray-text always.
+   The white color comes entirely from .nav-pill-reveal, clipped to the
+   indicator's live position, so it changes continuously as the slider moves
+   over it instead of flipping the instant the tab becomes .active. */
 
 @media (hover: hover) and (pointer: fine) {
     .nav-pill:hover:not(.active) { background: rgba(30,30,30,0.06); color: var(--dark); }

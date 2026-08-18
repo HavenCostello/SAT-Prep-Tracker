@@ -5,7 +5,7 @@
  *   • Google Fonts: Stale-while-revalidate (fallback gracefully)
  */
 
-const CACHE   = 'sat-prep-v11';
+const CACHE   = 'sat-prep-v13';
 const NETWORK_ONLY = [
     'firestore.googleapis.com',
     'identitytoolkit.googleapis.com',
@@ -23,6 +23,8 @@ const SHELL = [
     '/sync.html',
     '/app.css',
     '/storage.js',
+    '/sat-taxonomy.js',
+    '/test-store.js',
     '/firebase-config.js',
     '/firebase-init.js',
     '/pwa-init.js',

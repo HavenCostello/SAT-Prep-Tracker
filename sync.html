@@ -132,7 +132,7 @@
         .sync-btn:active { transform: scale(0.97); }
         .sync-btn--primary   { background: var(--dark);  color: var(--white); }
         .sync-btn--secondary { background: var(--gray);  color: var(--dark);  }
-        .sync-btn--danger    { background: #9e2a2b;      color: var(--white); }
+        .sync-btn--danger    { background: var(--dark);  color: var(--white); }
         .sync-btn--ghost     { background: transparent;  color: var(--gray-text); border: 1.5px solid var(--gray); }
 
         /* ── Import row ── */
@@ -307,6 +307,8 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script src="firebase-config.js"></script>
 <script src="storage.js"></script>
+<script src="sat-taxonomy.js"></script>
+<script src="test-store.js"></script>
 <script src="firebase-init.js"></script>
 <script src="pwa-init.js"></script>
 <script>
@@ -371,10 +373,20 @@
     }
 
     // ── Export ──
+    /* A backup carries the full per-test JSON records in `testDocs` alongside
+       the derived summaries, because the summaries alone can't reconstruct the
+       question-level detail every chart now reads. Version-1 backups (summaries
+       only) still import — those tests just come back without detail. */
     async function doExport() {
-        const [sessions, tests] = await Promise.all([SAT_STORAGE.getSessions(), SAT_STORAGE.getTests()]);
-        const payload = JSON.stringify({ version: 1, exported: new Date().toISOString(), sessions, tests }, null, 2);
-        const name    = `sat-prep-backup-${new Date().toISOString().slice(0,10)}.json`;
+        const [sessions, tests] = await Promise.all([
+            SAT_STORAGE.getSessions(), SAT_TESTS.getSummaries()
+        ]);
+        const testDocs = SAT_TESTS.detailsFor(tests);
+        const payload  = JSON.stringify({
+            version: 2, exported: new Date().toISOString(), sessions, tests, testDocs
+        }, null, 2);
+        const name = `sat-prep-backup-${new Date().toISOString().slice(0,10)}.json`;
+        const done = `Exported ${sessions.length} session${sessions.length !== 1 ? 's' : ''} and ${tests.length} test${tests.length !== 1 ? 's' : ''}`;
 
         if (typeof window.showSaveFilePicker === 'function') {
             try {
@@ -385,7 +397,7 @@
                 const w = await handle.createWritable();
                 await w.write(payload);
                 await w.close();
-                setStatus('exportStatus', `Exported ${sessions.length} session${sessions.length !== 1 ? 's' : ''} and ${tests.length} test${tests.length !== 1 ? 's' : ''}`);
+                setStatus('exportStatus', done);
                 return;
             } catch(e) { if (e.name === 'AbortError') return; }
         }
@@ -395,7 +407,7 @@
         const a    = Object.assign(document.createElement('a'), { href: url, download: name });
         a.click();
         URL.revokeObjectURL(url);
-        setStatus('exportStatus', `Exported ${sessions.length} session${sessions.length !== 1 ? 's' : ''} and ${tests.length} test${tests.length !== 1 ? 's' : ''}`);
+        setStatus('exportStatus', done);
     }
 
     // ── Import ──
@@ -418,26 +430,52 @@
             const data = JSON.parse(text);
 
             const incoming = Array.isArray(data)
-                ? { sessions: data, tests: [] }
-                : { sessions: Array.isArray(data.sessions) ? data.sessions : [], tests: Array.isArray(data.tests) ? data.tests : [] };
+                ? { sessions: data, tests: [], testDocs: [] }
+                : {
+                    sessions: Array.isArray(data.sessions) ? data.sessions : [],
+                    tests:    Array.isArray(data.tests)    ? data.tests    : [],
+                    testDocs: Array.isArray(data.testDocs) ? data.testDocs : []
+                  };
 
             if (pendingMode === 'replace') {
                 await SAT_STORAGE.saveSessions(incoming.sessions);
-                await SAT_STORAGE.saveTests(incoming.tests);
+                await SAT_TESTS.clearAll();
+                await restoreTests(incoming);
                 setStatus('importStatus', `Replaced — ${incoming.sessions.length} session${incoming.sessions.length !== 1 ? 's' : ''}, ${incoming.tests.length} test${incoming.tests.length !== 1 ? 's' : ''}`);
             } else {
-                const [curS, curT] = await Promise.all([SAT_STORAGE.getSessions(), SAT_STORAGE.getTests()]);
-                const merge = (a, b) => { const m = {}; [...a, ...b].forEach(x => { m[x.id] = x; }); return Object.values(m); };
-                const mergedS = merge(curS, incoming.sessions);
-                const mergedT = merge(curT, incoming.tests);
-                await SAT_STORAGE.saveSessions(mergedS);
-                await SAT_STORAGE.saveTests(mergedT);
+                const curS  = await SAT_STORAGE.getSessions();
+                const merge = (x, y) => { const m = {}; [...x, ...y].forEach(v => { m[v.id] = v; }); return Object.values(m); };
+                await SAT_STORAGE.saveSessions(merge(curS, incoming.sessions));
+                await restoreTests(incoming);
+                const mergedS = await SAT_STORAGE.getSessions();
+                const mergedT = await SAT_TESTS.getSummaries();
                 setStatus('importStatus', `Merged — ${mergedS.length} session${mergedS.length !== 1 ? 's' : ''}, ${mergedT.length} test${mergedT.length !== 1 ? 's' : ''} total`);
             }
             showToast('Import complete');
-        } catch {
+        } catch (err) {
+            console.warn('[SAT] import failed', err);
             setStatus('importStatus', 'Could not read that file');
             showToast('Import failed');
+        }
+    }
+
+    /* Full records go through the store so each one lands in both layers (its
+       own detail document plus the derived summary) and gets pushed to the
+       cloud. A summary with no matching record still imports — it just comes
+       back without question-level detail. */
+    async function restoreTests(incoming) {
+        const restored = new Set();
+        for (const rec of incoming.testDocs) {
+            try {
+                await SAT_TESTS.save(rec);
+                if (rec && rec.app && rec.app.id) restored.add(rec.app.id);
+            } catch (err) { console.warn('[SAT] skipped a malformed test record', err); }
+        }
+        for (const t of incoming.tests) {
+            if (!t || !t.id || restored.has(t.id)) continue;
+            try {
+                await SAT_TESTS.save(SAT_TESTS.normalize(t, { id: t.id }));
+            } catch (err) { console.warn('[SAT] skipped a malformed test summary', err); }
         }
     }
 

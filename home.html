@@ -264,6 +264,8 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script src="firebase-config.js"></script>
 <script src="storage.js"></script>
+<script src="sat-taxonomy.js"></script>
+<script src="test-store.js"></script>
 <script src="firebase-init.js"></script>
 <script src="pwa-init.js"></script>
 <script>
@@ -272,15 +274,20 @@
     document.getElementById('greeting').textContent =
         hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening';
 
-    const RW_COLOR    = '#003566';
-    const MATH_COLOR  = '#9e2a2b';
-    const FOCUS_COLOR = '#4A8C6E';
+    /* The only chromatic values in the app — one per data series. Same
+       values as test-history.html. Everything else is white, #1e1e1e, or a
+       neutral tint between them. */
+    const RW_COLOR    = '#669bbc';
+    const MATH_COLOR  = '#c1121f';
+    const FOCUS_COLOR = '#1e1e1e';
     const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
     /* ── Shared data stores ── */
     let _homeTests   = [];
     let _homeDays    = [];
+    let _allTests    = [];
     let _skillW      = {};
+    let _skillLabels = {};
     let _skillSecs   = {};
     let _skillCounts = {};
     let _skillTotalW = 0;
@@ -367,17 +374,19 @@
     function renderPriority(tests) {
         const el  = document.getElementById('priorityList');
         const now = Date.now();
-        _skillW = {}; _skillSecs = {}; _skillCounts = {};
+        _skillW = {}; _skillSecs = {}; _skillCounts = {}; _skillLabels = {};
         tests.forEach(t => {
             const daysAgo = (now - new Date(t.date).getTime()) / 86400000;
             const w = Math.exp(-0.04 * daysAgo);
             (t.missedQuestions || []).forEach(q => {
-                if (!q.skill) return;
-                _skillW[q.skill]      = (_skillW[q.skill]      || 0) + w;
-                _skillCounts[q.skill] = (_skillCounts[q.skill] || 0) + 1;
-                if (!_skillSecs[q.skill]) _skillSecs[q.skill] = { rw: 0, math: 0 };
-                if (q.section === 'rw1' || q.section === 'rw2') _skillSecs[q.skill].rw++;
-                else _skillSecs[q.skill].math++;
+                const key = q.skillKey || SAT_TAXONOMY.skillKey(q.skill, q.domain);
+                if (!key) return;
+                _skillLabels[key]  = _skillLabels[key] || q.skill || key;
+                _skillW[key]       = (_skillW[key]      || 0) + w;
+                _skillCounts[key]  = (_skillCounts[key] || 0) + 1;
+                if (!_skillSecs[key]) _skillSecs[key] = { rw: 0, math: 0 };
+                if (q.section === 'rw1' || q.section === 'rw2') _skillSecs[key].rw++;
+                else _skillSecs[key].math++;
             });
         });
 
@@ -397,26 +406,26 @@
             ? `Top 5 of ${all.length} categories`
             : `${all.length} skill${all.length !== 1 ? 's' : ''}`;
 
-        const rowsHTML = top5.map(([skill, w], i) => {
-            const sc    = _skillSecs[skill] || { rw: 0, math: 0 };
+        const rowsHTML = top5.map(([key, w], i) => {
+            const sc    = _skillSecs[key] || { rw: 0, math: 0 };
             const color = sc.rw >= sc.math ? RW_COLOR : MATH_COLOR;
-            const esc   = skill.replace(/"/g, '&quot;');
+            const esc   = key.replace(/"/g, '&quot;');
             return `<div class="priority-row"
                         onclick="location.href='test-history.html'"
                         onmouseenter="hoverSkill('${esc}')" onmouseleave="hideHP()">
                 <span class="priority-row-rank">${i + 1}</span>
                 <span class="priority-row-dot" style="background:${color}"></span>
-                <span class="priority-row-name">${skill}</span>
-                <span class="priority-row-count">${_skillCounts[skill]}×</span>
+                <span class="priority-row-name">${_skillLabels[key]}</span>
+                <span class="priority-row-count">${_skillCounts[key]}×</span>
             </div>`;
         }).join('');
 
-        const barsHTML = all.map(([skill, w], i) => {
-            const sc     = _skillSecs[skill] || { rw: 0, math: 0 };
+        const barsHTML = all.map(([key, w], i) => {
+            const sc     = _skillSecs[key] || { rw: 0, math: 0 };
             const isTop  = i < 5;
             const color  = isTop ? (sc.rw >= sc.math ? RW_COLOR : MATH_COLOR) : 'var(--gray-mid)';
             const hPct   = (w / maxW * 100).toFixed(1);
-            const esc    = skill.replace(/"/g, '&quot;');
+            const esc    = key.replace(/"/g, '&quot;');
             return `<div class="vbar-item">
                 <div class="vbar-inner${isTop ? ' is-top' : ''}" data-h="${hPct}" style="height:0;background:${color}"
                      onclick="location.href='test-history.html'"
@@ -453,7 +462,7 @@
         } : null).filter(Boolean);
         if (pts.length === 0) return '';
         const line = pts.length > 1
-            ? `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;z-index:2;"><polyline points="${pts.map(p => `${p.x},${p.y}`).join(' ')}" fill="none" stroke="#4A8C6E" stroke-width="1.5" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>`
+            ? `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;z-index:2;"><polyline points="${pts.map(p => `${p.x},${p.y}`).join(' ')}" fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/><polyline points="${pts.map(p => `${p.x},${p.y}`).join(' ')}" fill="none" stroke="#1e1e1e" stroke-width="1.5" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>`
             : '';
         return line + pts.map(p =>
             `<div class="score-dot" style="left:${p.x}%;top:${p.y}%;" data-tip="${p.score}/10 · ${p.label}"></div>`
@@ -464,13 +473,21 @@
     function renderScoreChart(tests) {
         const el     = document.getElementById('scoreChart');
         const peakEl = document.getElementById('scorePeak');
-        _homeTests   = [...tests].sort((a, b) => new Date(a.date) - new Date(b.date)).slice(-30);
+        // Full tests only: a section-only test scores out of 800, so plotting it
+        // on the 1600 trend would read as a collapse rather than a shorter test.
+        _homeTests   = tests.filter(t => t.isFullTest !== false)
+                            .sort((a, b) => new Date(a.date) - new Date(b.date)).slice(-30);
 
-        if (_homeTests.length === 0) { peakEl.textContent = ''; el.innerHTML = '<div class="chart-empty">No tests logged yet</div>'; return; }
+        if (_homeTests.length === 0) {
+            peakEl.textContent = '';
+            el.innerHTML = `<div class="chart-empty">${tests.length ? 'No full-length tests yet' : 'No tests logged yet'}</div>`;
+            return;
+        }
 
         const totals = _homeTests.map(t => t.rwScore + t.mathScore);
         const maxTot = Math.max(...totals);
-        peakEl.textContent = `Peak: ${maxTot} / 1600`;
+        const peakT  = _homeTests[totals.indexOf(maxTot)];
+        peakEl.textContent = `Peak: ${peakT && peakT.scoresEstimated ? '~' : ''}${maxTot} / 1600`;
 
         const N = _homeTests.length;
         const barsHTML = _homeTests.map((t, i) => {
@@ -600,22 +617,30 @@
         const focLine = _avgSnap.focAvg != null ? `<div class="hp-row"><span class="hp-row-name">Avg focus</span><span class="hp-row-val">${_avgSnap.focAvg}/10</span></div>` : '';
         showHP(`<div class="hp-eyebrow">Daily Average</div><div class="hp-hero">${fmtDurStr(Math.round(_avgSnap.secsPerDay))}</div><div class="hp-sub">per active study day</div><hr class="hp-divider"><div class="hp-row"><span class="hp-row-name">Active days</span><span class="hp-row-val">${_avgSnap.activeDays}</span></div>${focLine}<div class="hp-link">→ Study History</div>`);
     }
-    function hoverSkill(skill) {
-        const sc    = _skillSecs[skill] || { rw: 0, math: 0 };
-        const raw   = _skillCounts[skill] || 0;
+    function hoverSkill(skillKey) {
+        const sc    = _skillSecs[skillKey] || { rw: 0, math: 0 };
+        const raw   = _skillCounts[skillKey] || 0;
+        const skill = _skillLabels[skillKey] || skillKey;
         const color = sc.rw >= sc.math ? RW_COLOR : MATH_COLOR;
         const subj  = sc.rw >= sc.math ? 'R&amp;W' : 'Math';
-        const pct   = _skillTotalW > 0 && _skillW[skill] != null ? (_skillW[skill] / _skillTotalW * 100).toFixed(1) : null;
+        const pct   = _skillTotalW > 0 && _skillW[skillKey] != null ? (_skillW[skillKey] / _skillTotalW * 100).toFixed(1) : null;
+        const stat  = SAT_TESTS.skillStats(_allTests).find(e => e.key === skillKey);
+        const accRow = stat && stat.accuracy != null
+            ? `<div class="hp-row"><span class="hp-row-name">Accuracy</span><span class="hp-row-val">${Math.round(stat.accuracy * 100)}% (${stat.correct}/${stat.attempted})</span></div>`
+            : '';
         const rwRow  = sc.rw   > 0 ? `<div class="hp-row"><span class="hp-row-name">R&amp;W</span><span class="hp-row-val">${sc.rw}×</span></div>` : '';
         const mathRow= sc.math > 0 ? `<div class="hp-row"><span class="hp-row-name">Math</span><span class="hp-row-val">${sc.math}×</span></div>` : '';
         const pctRow = pct != null ? `<div class="hp-row"><span class="hp-row-name">Share of misses</span><span class="hp-row-val">${pct}%</span></div>` : '';
-        showHP(`<div class="hp-eyebrow" style="color:${color}">${subj}</div><div class="hp-hero">${raw}<span class="hp-hero-denom" style="font-size:15px">×</span></div><div class="hp-sub">${skill}</div><hr class="hp-divider">${rwRow}${mathRow}${pctRow}<div class="hp-link">→ Test History</div>`);
+        showHP(`<div class="hp-eyebrow" style="color:${color}">${subj}</div><div class="hp-hero">${raw}<span class="hp-hero-denom" style="font-size:15px">×</span></div><div class="hp-sub">${skill}</div><hr class="hp-divider">${rwRow}${mathRow}${pctRow}${accRow}<div class="hp-link">→ Test History</div>`);
     }
     function hoverScoreBar(idx) {
         const t = _homeTests[idx]; if (!t) return;
         const total  = t.rwScore + t.mathScore;
         const missed = (t.missedQuestions || []).length;
-        showHP(`<div class="hp-eyebrow">${fmtDateShort(new Date(t.date))}</div><div class="hp-hero">${total} <span class="hp-hero-denom">/ 1600</span></div><div class="hp-sub">R&amp;W ${t.rwScore} · Math ${t.mathScore}</div>${missed > 0 ? `<hr class="hp-divider"><div class="hp-row"><span class="hp-row-name">Missed</span><span class="hp-row-val">${missed} q</span></div>` : ''}<div class="hp-link">→ Test History</div>`);
+        const acc    = t.hasDetail && t.accuracy != null
+            ? `<div class="hp-row"><span class="hp-row-name">Accuracy</span><span class="hp-row-val">${t.correctCount}/${t.totalQuestions} · ${Math.round(t.accuracy * 100)}%</span></div>`
+            : '';
+        showHP(`<div class="hp-eyebrow">${t.testName || fmtDateShort(new Date(t.date))}</div><div class="hp-hero">${t.scoresEstimated ? '~' : ''}${total} <span class="hp-hero-denom">/ 1600</span></div><div class="hp-sub">R&amp;W ${t.rwScore} · Math ${t.mathScore}${t.scoresEstimated ? ' · estimated' : ''}</div>${acc ? `<hr class="hp-divider">${acc}` : ''}${missed > 0 ? `<hr class="hp-divider"><div class="hp-row"><span class="hp-row-name">Missed</span><span class="hp-row-val">${missed} q</span></div>` : ''}<div class="hp-link">→ Test History</div>`);
     }
     function hoverStudyBar(idx) {
         const d = _homeDays[idx]; if (!d || d.secs === 0) return;
@@ -753,9 +778,12 @@
 
     /* ── Init ── */
     async function init() {
-        const [sessions, tests] = await Promise.all([SAT_STORAGE.getSessions(), SAT_STORAGE.getTests()]);
+        const [sessions, tests] = await Promise.all([
+            SAT_STORAGE.getSessions(), SAT_TESTS.getSummaries()
+        ]);
         renderStudyStats(sessions);
         renderPriority(tests);
+        _allTests = tests;
         renderScoreChart(tests);
         renderStudyChart(sessions);
     }

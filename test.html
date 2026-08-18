@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>SAT Prep — Practice Tests</title>
+    <title>SAT Prep — Log a Test</title>
 
     <!-- PWA -->
     <link rel="manifest" href="manifest.json">
@@ -24,10 +24,11 @@
 
     <!-- Page-specific styles -->
     <style>
-        /* ── Date input ── */
-        input[type="date"] {
+        /* ── Text / date inputs ── */
+        input[type="date"], input[type="text"].field-input {
             font-family: 'Inter', sans-serif;
             font-weight: 400;
+            font-size: 0.9375rem;
             letter-spacing: -0.03em;
             color: var(--dark);
             background: var(--off-white);
@@ -36,12 +37,13 @@
             padding: 1rem 1.25rem;
             outline: none;
             width: 100%;
-            cursor: pointer;
-            transition: border-color 0.15s;
+            transition: border-color 0.15s, background 0.15s;
             appearance: none;
             -webkit-appearance: none;
         }
-        input[type="date"]:focus { border-color: var(--dark); background: var(--white); }
+        input[type="date"] { cursor: pointer; }
+        input[type="date"]:focus,
+        input[type="text"].field-input:focus { border-color: var(--dark); background: var(--white); }
         input[type="date"]::-webkit-calendar-picker-indicator { opacity: 0.4; cursor: pointer; }
 
         .field-label-opt {
@@ -52,6 +54,12 @@
             color: var(--gray-mid);
             margin-left: 0.375rem;
         }
+        .field-help {
+            font-size: 0.6875rem;
+            color: var(--gray-mid);
+            letter-spacing: -0.01em;
+            line-height: 1.5;
+        }
 
         /* ── Last test card ── */
         .last-test-card {
@@ -61,9 +69,9 @@
             padding: clamp(1.25rem,4vw,2.25rem) clamp(1.125rem,4vw,2.5rem);
             margin-bottom: 2rem;
         }
-        .last-test-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; }
+        .last-test-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 1.25rem; }
         .card-eyebrow { font-family: 'Libre Baskerville', serif; font-style: italic; font-size: 0.8125rem; opacity: 0.55; }
-        .card-date    { font-size: 0.75rem; font-weight: 500; letter-spacing: -0.02em; opacity: 0.45; }
+        .card-date    { font-size: 0.75rem; font-weight: 500; letter-spacing: -0.02em; opacity: 0.45; white-space: nowrap; }
 
         .score-display-row { display: flex; align-items: baseline; gap: 0.625rem; margin-bottom: 0.625rem; }
         .score-total-big {
@@ -75,7 +83,7 @@
         }
         .score-denom-big { font-size: 1.375rem; font-weight: 400; letter-spacing: -0.04em; opacity: 0.4; }
 
-        .score-sub-row  { display: flex; gap: 1.25rem; margin-bottom: 1.5rem; }
+        .score-sub-row  { display: flex; flex-wrap: wrap; gap: 1.25rem; margin-bottom: 1.5rem; }
         .score-sub-item { font-size: 0.8125rem; font-weight: 500; letter-spacing: -0.02em; opacity: 0.55; }
         .score-sub-item span { opacity: 0.7; font-weight: 400; }
 
@@ -83,6 +91,10 @@
         .missed-tags { display: flex; flex-wrap: wrap; gap: 0.375rem; }
         .missed-tag  { font-size: 0.6875rem; font-weight: 500; letter-spacing: -0.01em; padding: 0.25rem 0.6875rem; border-radius: 6.25rem; background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.75); }
         .no-missed   { font-family: 'Libre Baskerville', serif; font-style: italic; font-size: 0.8125rem; opacity: 0.45; }
+
+        .tl-card-row { display: flex; gap: 0.875rem; flex-wrap: wrap; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.12); }
+        .tl-card-item { font-size: 0.75rem; font-weight: 500; letter-spacing: -0.01em; opacity: 0.55; }
+        .tl-card-item strong { font-weight: 600; color: rgba(255,255,255,0.85); opacity: 1; }
 
         /* ── Score inputs ── */
         .score-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
@@ -110,6 +122,7 @@
         .score-input::-webkit-inner-spin-button,
         .score-input::-webkit-outer-spin-button { display: none; }
         .score-input:focus { border-color: var(--dark); background: var(--white); }
+        .score-input::placeholder { color: var(--gray-mid); }
 
         .score-range-hint { font-size: 0.6875rem; color: var(--gray-mid); text-align: center; letter-spacing: -0.01em; }
 
@@ -117,97 +130,6 @@
         .score-total-preview-num   { font-size: 1.75rem; font-weight: 300; letter-spacing: -0.05em; font-variant-numeric: tabular-nums; }
         .score-total-preview-denom { font-size: 1rem; font-weight: 400; color: var(--gray-text); letter-spacing: -0.03em; }
         .score-total-preview-label { font-size: 0.625rem; font-weight: 500; letter-spacing: 0.07em; text-transform: uppercase; color: var(--gray-mid); margin-top: 0.125rem; }
-
-        /* ── Missed questions ── */
-        .missed-list  { display: flex; flex-direction: column; gap: 0.375rem; margin-bottom: 0.5rem; }
-        .missed-q-row {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: var(--off-white);
-            border-radius: 0.75rem;
-            padding: 0.625rem 0.75rem;
-            flex-wrap: wrap;
-        }
-        .q-prefix { font-size: 0.8125rem; font-weight: 600; letter-spacing: 0.02em; color: var(--gray-text); flex-shrink: 0; width: 0.875rem; }
-        .q-num-input {
-            font-family: 'Inter', sans-serif;
-            font-size: 1.25rem;
-            font-weight: 300;
-            letter-spacing: -0.04em;
-            color: var(--dark);
-            background: var(--white);
-            border: 1.5px solid transparent;
-            border-radius: 0.5rem;
-            padding: 0.5rem 0.375rem;
-            width: 4rem;
-            text-align: center;
-            outline: none;
-            transition: border-color 0.15s;
-            flex-shrink: 0;
-            -moz-appearance: textfield;
-            appearance: textfield;
-        }
-        .q-num-input::-webkit-inner-spin-button,
-        .q-num-input::-webkit-outer-spin-button { display: none; }
-        .q-num-input:focus { border-color: var(--dark); }
-
-        .q-skill-select {
-            font-family: 'Inter', sans-serif;
-            font-size: 0.8125rem;
-            font-weight: 400;
-            letter-spacing: -0.01em;
-            color: var(--dark);
-            background: var(--white);
-            border: 1.5px solid transparent;
-            border-radius: 0.5rem;
-            padding: 0.5625rem 2rem 0.5625rem 0.75rem;
-            flex: 1;
-            outline: none;
-            cursor: pointer;
-            transition: border-color 0.15s;
-            appearance: none;
-            -webkit-appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236b6b6b' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 11px center;
-            min-width: 0;
-        }
-        .q-skill-select:focus { border-color: var(--dark); }
-
-        .remove-q-btn {
-            width: 1.625rem; height: 1.625rem; border-radius: 50%;
-            border: 1.5px solid var(--gray); background: transparent; color: var(--gray-mid);
-            cursor: pointer; display: flex; align-items: center; justify-content: center;
-            transition: all 0.15s; flex-shrink: 0;
-        }
-        @media (hover: hover) and (pointer: fine) { .remove-q-btn:hover { background: var(--dark); border-color: var(--dark); color: var(--white); } }
-
-        .section-toggle {
-            display: flex; align-items: center;
-            background: var(--white); border: 1.5px solid var(--gray);
-            border-radius: 0.375rem; padding: 2px; gap: 1px; flex-shrink: 0;
-        }
-        .section-btn {
-            font-family: 'Inter', sans-serif; font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.01em;
-            padding: 0.3125rem 0.5rem; border-radius: 0.25rem; border: none;
-            background: transparent; color: var(--gray-text);
-            cursor: pointer; transition: background 0.12s, color 0.12s;
-            white-space: nowrap; line-height: 1; min-height: 2.75rem;
-            display: inline-flex; align-items: center;
-        }
-        @media (hover: hover) and (pointer: fine) { .section-btn:hover:not(.active) { background: var(--off-white); color: var(--dark); } }
-        .section-btn.active { background: var(--dark); color: var(--white); }
-        .toggle-sep { width: 1px; height: 0.8125rem; background: var(--gray); flex-shrink: 0; margin: 0 1px; }
-
-        .add-q-btn {
-            font-family: 'Inter', sans-serif; font-size: 0.8125rem; font-weight: 500; letter-spacing: -0.02em;
-            padding: 0.625rem 1.125rem; border-radius: 6.25rem; border: 1.5px solid var(--gray);
-            background: transparent; color: var(--gray-text); cursor: pointer;
-            transition: border-color 0.15s, color 0.15s; align-self: flex-start; min-height: 3rem;
-            display: inline-flex; align-items: center;
-        }
-        @media (hover: hover) and (pointer: fine) { .add-q-btn:hover { border-color: var(--dark); color: var(--dark); } }
 
         /* ── Session select ── */
         .session-select {
@@ -259,12 +181,44 @@
         }
         .tl-num::-webkit-inner-spin-button,
         .tl-num::-webkit-outer-spin-button { display: none; }
-        .tl-num:focus { border-color: var(--dark); background: var(--white); }
+        .tl-num:focus { border-color: var(--dark); }
         .tl-sep { font-size: 1rem; font-weight: 300; color: var(--gray); flex-shrink: 0; padding: 0 1px; }
 
-        .tl-card-row { display: flex; gap: 0.875rem; flex-wrap: wrap; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.12); }
-        .tl-card-item { font-size: 0.75rem; font-weight: 500; letter-spacing: -0.01em; opacity: 0.55; }
-        .tl-card-item strong { font-weight: 600; color: rgba(255,255,255,0.85); opacity: 1; }
+        /* ── Module count editor (manual mode) ── */
+        .mod-count-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(6.5rem, 1fr)); gap: 0.5rem; }
+        .mod-count-cell { background: var(--off-white); border-radius: 0.625rem; padding: 0.625rem 0.75rem; display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+        .mod-count-label { font-size: 0.625rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gray-text); }
+        .mod-count-input {
+            font-family: 'Inter', sans-serif; font-size: 1rem; font-weight: 400; letter-spacing: -0.03em;
+            color: var(--dark); background: var(--white);
+            border: 1.5px solid transparent; border-radius: 0.4375rem;
+            padding: 0.375rem 0.25rem; width: 3rem; text-align: center; outline: none;
+            -moz-appearance: textfield; appearance: textfield; transition: border-color 0.15s;
+        }
+        .mod-count-input::-webkit-inner-spin-button,
+        .mod-count-input::-webkit-outer-spin-button { display: none; }
+        .mod-count-input:focus { border-color: var(--dark); }
+
+        /* ── Format toggle ── */
+        .fmt-toggle { display: flex; gap: 0.375rem; flex-wrap: wrap; }
+        .fmt-btn {
+            font-family: 'Inter', sans-serif; font-size: 0.8125rem; font-weight: 500; letter-spacing: -0.02em;
+            padding: 0.625rem 1.125rem; border-radius: 6.25rem;
+            border: 1.5px solid var(--gray); background: transparent; color: var(--gray-text);
+            cursor: pointer; transition: all 0.15s; min-height: 2.75rem;
+        }
+        .fmt-btn.active { background: var(--dark); border-color: var(--dark); color: var(--white); }
+        @media (hover: hover) and (pointer: fine) {
+            .fmt-btn:hover:not(.active) { border-color: var(--dark); color: var(--dark); }
+        }
+
+        /* ── Sub-section heading inside a panel ── */
+        .sub-head {
+            font-size: 0.625rem; font-weight: 600; letter-spacing: 0.1em;
+            text-transform: uppercase; color: var(--gray-mid);
+            padding-bottom: 0.5rem; border-bottom: 1px solid var(--off-white);
+            margin-bottom: 0.25rem;
+        }
 
         /* ── Test list ── */
         .list-header {
@@ -281,6 +235,14 @@
         .test-score-col { text-align: right; padding-top: 1px; }
         .test-score-main { font-size: 0.9375rem; font-weight: 500; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; white-space: nowrap; }
         .test-score-sub  { font-size: 0.6875rem; color: var(--gray-text); margin-top: 0.125rem; white-space: nowrap; }
+        .test-badge {
+            display: inline-block; font-size: 0.5625rem; font-weight: 600;
+            letter-spacing: 0.06em; text-transform: uppercase;
+            padding: 0.125rem 0.4375rem; border-radius: 6.25rem; margin-left: 0.4375rem;
+            vertical-align: 1px;
+        }
+        .test-badge--auto   { background: var(--dark);      color: var(--white); }
+        .test-badge--manual { background: var(--off-white); color: var(--gray-text); }
     </style>
 </head>
 <body>
@@ -290,7 +252,7 @@
     <a href="home.html" class="brand">SAT Prep</a>
     <div class="nav-pills">
         <a href="home.html"         class="nav-pill">Home</a>
-        <a href="log.html"        class="nav-pill">Log Session</a>
+        <a href="log.html"          class="nav-pill">Log Session</a>
         <a href="history.html"      class="nav-pill">Session History</a>
         <a href="test.html"         class="nav-pill active">Log Test</a>
         <a href="test-history.html" class="nav-pill">Test History</a>
@@ -357,7 +319,7 @@
 
 <div class="page">
     <p class="page-eyebrow">SAT Prep</p>
-    <h1 class="page-title">Practice Tests</h1>
+    <h1 class="page-title">Log a Test</h1>
 
     <!-- Last test card -->
     <div class="last-test-card" id="lastTestCard" style="display:none">
@@ -367,108 +329,214 @@
         </div>
         <div class="score-display-row">
             <span class="score-total-big" id="lastTotal"></span>
-            <span class="score-denom-big">/ 1600</span>
+            <span class="score-denom-big" id="lastDenom">/ 1600</span>
         </div>
         <div class="score-sub-row">
             <span class="score-sub-item"><span>R&amp;W </span><span id="lastRW"></span></span>
             <span class="score-sub-item"><span>Math </span><span id="lastMath"></span></span>
+            <span class="score-sub-item" id="lastAccWrap" style="display:none"><span>Accuracy </span><span id="lastAcc"></span></span>
         </div>
         <p class="missed-section-label" id="lastMissedLabel">Missed</p>
         <div class="missed-tags" id="lastMissedTags"></div>
         <div class="tl-card-row" id="lastTimeLeft" style="display:none"></div>
     </div>
 
-    <!-- Form -->
-    <div class="form-section">
-
-        <!-- Date -->
-        <div class="field">
-            <span class="field-label">Date</span>
-            <input type="date" id="dateInput">
-        </div>
-
-        <!-- Score -->
-        <div class="field">
-            <span class="field-label">Score</span>
-            <div class="score-grid">
-                <div class="score-col">
-                    <span class="score-col-label">Reading &amp; Writing</span>
-                    <input type="number" class="score-input" id="rwInput"
-                           min="200" max="800" placeholder="—" oninput="updateTotal()">
-                    <span class="score-range-hint">200 – 800</span>
-                </div>
-                <div class="score-col">
-                    <span class="score-col-label">Math</span>
-                    <input type="number" class="score-input" id="mathInput"
-                           min="200" max="800" placeholder="—" oninput="updateTotal()">
-                    <span class="score-range-hint">200 – 800</span>
-                </div>
-            </div>
-            <div class="score-total-preview">
-                <div>
-                    <span class="score-total-preview-num" id="totalPreview">—</span>
-                    <span class="score-total-preview-denom" id="totalPreviewDenom"></span>
-                </div>
-                <p class="score-total-preview-label">Total</p>
-            </div>
-        </div>
-
-        <!-- Missed questions -->
-        <div class="field">
-            <span class="field-label">Questions Missed</span>
-            <div class="missed-list" id="missedList"></div>
-            <button type="button" class="add-q-btn" onclick="addMissedQuestion()">+ Add question</button>
-        </div>
-
-        <!-- Time left per section -->
-        <div class="field">
-            <span class="field-label">Time Left per Section <span class="field-label-opt">optional</span></span>
-            <div class="time-left-grid">
-                <div class="time-left-cell">
-                    <p class="time-left-sec-label">RW Section 1</p>
-                    <div class="time-left-row">
-                        <input type="number" class="tl-num" id="tl-rw1-min" min="0" max="99" placeholder="mm">
-                        <span class="tl-sep">:</span>
-                        <input type="number" class="tl-num" id="tl-rw1-sec" min="0" max="59" placeholder="ss">
-                    </div>
-                </div>
-                <div class="time-left-cell">
-                    <p class="time-left-sec-label">RW Section 2</p>
-                    <div class="time-left-row">
-                        <input type="number" class="tl-num" id="tl-rw2-min" min="0" max="99" placeholder="mm">
-                        <span class="tl-sep">:</span>
-                        <input type="number" class="tl-num" id="tl-rw2-sec" min="0" max="59" placeholder="ss">
-                    </div>
-                </div>
-                <div class="time-left-cell">
-                    <p class="time-left-sec-label">Math Section 1</p>
-                    <div class="time-left-row">
-                        <input type="number" class="tl-num" id="tl-m1-min" min="0" max="99" placeholder="mm">
-                        <span class="tl-sep">:</span>
-                        <input type="number" class="tl-num" id="tl-m1-sec" min="0" max="59" placeholder="ss">
-                    </div>
-                </div>
-                <div class="time-left-cell">
-                    <p class="time-left-sec-label">Math Section 2</p>
-                    <div class="time-left-row">
-                        <input type="number" class="tl-num" id="tl-m2-min" min="0" max="99" placeholder="mm">
-                        <span class="tl-sep">:</span>
-                        <input type="number" class="tl-num" id="tl-m2-sec" min="0" max="59" placeholder="ss">
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Linked session -->
-        <div class="field">
-            <span class="field-label">Linked Study Session <span class="field-label-opt">optional</span></span>
-            <select class="session-select" id="sessionSelect">
-                <option value="">No linked session</option>
-            </select>
-        </div>
-
-        <button class="btn-submit" onclick="logTest()">Log Test</button>
+    <!-- Mode switch -->
+    <div class="mode-switch" id="modeSwitch" data-mode="auto" role="tablist" aria-label="Test entry mode">
+        <span class="mode-switch-thumb" aria-hidden="true"></span>
+        <button class="mode-btn active" id="modeBtnAuto" role="tab" aria-selected="true" onclick="setMode('auto')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 16V4"/><path d="M7 9l5-5 5 5"/><path d="M4 16v3a1 1 0 001 1h14a1 1 0 001-1v-3"/>
+            </svg>
+            Auto · JSON upload
+        </button>
+        <button class="mode-btn" id="modeBtnManual" role="tab" aria-selected="false" onclick="setMode('manual')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 20h4L19 9a2.1 2.1 0 00-3-3L5 17v3z"/><path d="M14.5 6.5l3 3"/>
+            </svg>
+            Manual entry
+        </button>
     </div>
+
+    <!-- ═══════════ AUTO MODE ═══════════ -->
+    <section class="mode-panel active" id="panelAuto" role="tabpanel" aria-labelledby="modeBtnAuto">
+        <p class="mode-hint">
+            Run your test screenshots through the AI processing pipeline, then drop the
+            resulting <code>.json</code> here. Every question — correct and missed — is
+            imported with its domain, skill, difficulty and error pattern.
+        </p>
+
+        <div class="dropzone" id="dropzone" tabindex="0" role="button"
+             aria-label="Choose or drop a processed test JSON file">
+            <svg class="dropzone-icon" width="34" height="34" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                <path d="M14 2v6h6"/>
+                <path d="M12 18v-6"/><path d="M9.5 14.5L12 12l2.5 2.5"/>
+            </svg>
+            <p class="dropzone-title">Drop a processed test file</p>
+            <p class="dropzone-sub">
+                or tap to choose · expects <code>schema_version 1.0</code> or <code>2.0</code><br>
+                e.g. <code>data/processed/&lt;test name&gt;.json</code>
+            </p>
+        </div>
+        <input type="file" id="fileInput" accept=".json,application/json" style="display:none">
+
+        <div class="msg-list" id="autoMessages"></div>
+
+        <!-- Import preview + finalize -->
+        <div id="autoPreview" style="display:none; margin-top: 2rem;">
+            <div class="preview-card" id="previewCard"></div>
+
+            <div class="form-section">
+                <div class="field">
+                    <span class="field-label">Date</span>
+                    <input type="date" id="autoDate">
+                </div>
+
+                <div class="field">
+                    <span class="field-label">Scaled Scores <span class="field-label-opt">override the estimate</span></span>
+                    <div class="score-grid">
+                        <div class="score-col">
+                            <span class="score-col-label">Reading &amp; Writing</span>
+                            <input type="number" class="score-input" id="autoRw" min="200" max="800" placeholder="—" oninput="renderAutoPreview()">
+                            <span class="score-range-hint">200 – 800</span>
+                        </div>
+                        <div class="score-col">
+                            <span class="score-col-label">Math</span>
+                            <input type="number" class="score-input" id="autoMath" min="200" max="800" placeholder="—" oninput="renderAutoPreview()">
+                            <span class="score-range-hint">200 – 800</span>
+                        </div>
+                    </div>
+                    <p class="field-help" id="autoScoreHelp"></p>
+                </div>
+
+                <div class="field">
+                    <span class="field-label">Time Left per Section <span class="field-label-opt">optional</span></span>
+                    <div class="time-left-grid" id="autoTimeLeft"></div>
+                </div>
+
+                <div class="field">
+                    <span class="field-label">Linked Study Session <span class="field-label-opt">optional</span></span>
+                    <select class="session-select" id="autoSession">
+                        <option value="">No linked session</option>
+                    </select>
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn-submit" onclick="saveAuto()">Save Test</button>
+                    <button class="btn-ghost" onclick="resetAuto()">Discard</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════ MANUAL MODE ═══════════ -->
+    <section class="mode-panel" id="panelManual" role="tabpanel" aria-labelledby="modeBtnManual">
+        <p class="mode-hint">
+            Everything the AI pipeline records, entered by hand. Mark the questions you
+            missed on the grid — each one opens for its domain, skill, difficulty and
+            error pattern.
+        </p>
+
+        <div class="form-section">
+            <p class="sub-head">The test</p>
+
+            <div class="field">
+                <span class="field-label">Test Name</span>
+                <input type="text" class="field-input" id="mTestName" placeholder="e.g. SAT Practice 4">
+            </div>
+
+            <div class="field">
+                <span class="field-label">Source <span class="field-label-opt">optional</span></span>
+                <input type="text" class="field-input" id="mSource" placeholder="e.g. College Board, Bluebook, Princeton Review">
+            </div>
+
+            <div class="field">
+                <span class="field-label">Date</span>
+                <input type="date" id="mDate">
+            </div>
+
+            <div class="field">
+                <span class="field-label">Format</span>
+                <div class="fmt-toggle" id="mFormat">
+                    <button type="button" class="fmt-btn active" data-fmt="full_test" onclick="setFormat('full_test')">Full test</button>
+                    <button type="button" class="fmt-btn"        data-fmt="rw_only"   onclick="setFormat('rw_only')">R&amp;W only</button>
+                    <button type="button" class="fmt-btn"        data-fmt="math_only" onclick="setFormat('math_only')">Math only</button>
+                </div>
+            </div>
+
+            <div class="field">
+                <span class="field-label">Questions per Module</span>
+                <div class="mod-count-grid" id="mModCounts"></div>
+                <p class="field-help">Standard digital SAT is 27 + 27 reading &amp; writing, 22 + 22 math.</p>
+            </div>
+
+            <p class="sub-head" style="margin-top:1rem">Questions</p>
+
+            <div class="field">
+                <span class="field-label">Mark What You Missed</span>
+                <p class="field-help" style="margin-bottom:0.5rem">
+                    Every question starts correct. Tap the ones you got wrong.
+                </p>
+                <div id="mGrids"></div>
+                <div class="qgrid-legend">
+                    <span class="qgl-item"><span class="qgl-pip" style="background:var(--off-white);box-shadow:inset 0 0 0 1.5px var(--gray)"></span>Correct</span>
+                    <span class="qgl-item"><span class="qgl-pip" style="background:var(--dark)"></span>Missed</span>
+                    <span class="qgl-item"><span class="qgl-pip" style="background:var(--dark);box-shadow:inset 0 0 0 1.5px var(--white)"></span>Needs a skill</span>
+                </div>
+            </div>
+
+            <div class="field" id="mMissedWrap" style="display:none">
+                <span class="field-label">Missed Question Detail</span>
+                <div id="mMissedList"></div>
+            </div>
+
+            <p class="sub-head" style="margin-top:1rem">Result</p>
+
+            <div class="field">
+                <span class="field-label">Scaled Scores <span class="field-label-opt">leave blank to estimate</span></span>
+                <div class="score-grid">
+                    <div class="score-col">
+                        <span class="score-col-label">Reading &amp; Writing</span>
+                        <input type="number" class="score-input" id="mRw" min="200" max="800" placeholder="—" oninput="renderManualTotals()">
+                        <span class="score-range-hint">200 – 800</span>
+                    </div>
+                    <div class="score-col">
+                        <span class="score-col-label">Math</span>
+                        <input type="number" class="score-input" id="mMath" min="200" max="800" placeholder="—" oninput="renderManualTotals()">
+                        <span class="score-range-hint">200 – 800</span>
+                    </div>
+                </div>
+                <div class="score-total-preview">
+                    <div>
+                        <span class="score-total-preview-num" id="mTotalPreview">—</span>
+                        <span class="score-total-preview-denom" id="mTotalDenom"></span>
+                    </div>
+                    <p class="score-total-preview-label" id="mTotalLabel">Total</p>
+                </div>
+            </div>
+
+            <div class="field">
+                <span class="field-label">Time Left per Section <span class="field-label-opt">optional</span></span>
+                <div class="time-left-grid" id="mTimeLeft"></div>
+            </div>
+
+            <div class="field">
+                <span class="field-label">Linked Study Session <span class="field-label-opt">optional</span></span>
+                <select class="session-select" id="mSession">
+                    <option value="">No linked session</option>
+                </select>
+            </div>
+
+            <div class="msg-list" id="manualMessages"></div>
+
+            <div class="btn-row">
+                <button class="btn-submit" onclick="saveManual()">Save Test</button>
+                <button class="btn-ghost" onclick="resetManual()">Clear</button>
+            </div>
+        </div>
+    </section>
 
     <hr class="divider">
 
@@ -478,147 +546,30 @@
 
 <div class="toast" id="toast"></div>
 
+<datalist id="errorPatternsRW"></datalist>
+<datalist id="errorPatternsMath"></datalist>
+
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script src="firebase-config.js"></script>
 <script src="storage.js"></script>
+<script src="sat-taxonomy.js"></script>
+<script src="test-store.js"></script>
 <script src="firebase-init.js"></script>
 <script src="pwa-init.js"></script>
 <script>
     const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     const DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const T      = SAT_TAXONOMY;
 
-    const SAT_SKILLS = {
-        "Reading and Writing": {
-            "Information and Ideas": [
-                "Central Ideas and Details", "Inferences",
-                "Command of Evidence (Textual)", "Command of Evidence (Quantitative)"
-            ],
-            "Craft and Structure": [
-                "Words in Context", "Text Structure and Purpose", "Cross-Text Connections"
-            ],
-            "Expression of Ideas": ["Rhetorical Synthesis", "Transitions"],
-            "Standard English Conventions": ["Boundaries", "Form, Structure, and Sense"]
-        },
-        "Math": {
-            "Algebra": [
-                "Linear Equations in One Variable", "Linear Equations in Two Variables",
-                "Linear Inequalities in One or Two Variables",
-                "Systems of Linear Equations in Two Variables"
-            ],
-            "Advanced Math": [
-                "Equivalent Expressions",
-                "Nonlinear Equations in One Variable and Systems",
-                "Nonlinear Functions"
-            ],
-            "Problem-Solving and Data Analysis": [
-                "Percentages", "Ratios, Rates, and Proportional Relationships",
-                "Two-Variable Data (Scatterplots)", "One-Variable Data (Distributions and Measures)",
-                "Probability and Conditional Probability",
-                "Inference from Sample Statistics", "Evaluating Statistical Claims"
-            ],
-            "Geometry and Trigonometry": [
-                "Area and Volume", "Lines, Angles, and Triangles",
-                "Right Triangles and Trigonometry", "Circles"
-            ]
-        }
-    };
-
-    /* ── Skill options HTML (filtered by section) ── */
-    function getSkillOptionsHTML(section) {
-        let html = '<option value="">— Select skill —</option>';
-        const entries = section === 'rw'   ? [['Reading and Writing', SAT_SKILLS['Reading and Writing']]]
-                      : section === 'math' ? [['Math', SAT_SKILLS['Math']]]
-                      : Object.entries(SAT_SKILLS);
-        for (const [sName, domains] of entries) {
-            const s = sName === 'Reading and Writing' ? 'R&W' : 'Math';
-            for (const [domain, skills] of Object.entries(domains)) {
-                html += `<optgroup label="${s} · ${domain}">`;
-                skills.forEach(sk => { html += `<option value="${sk}">${sk}</option>`; });
-                html += `</optgroup>`;
-            }
-        }
-        return html;
+    /* ══════════════════════════════════════════
+       Formatting helpers
+    ══════════════════════════════════════════ */
+    function esc(s) {
+        return String(s ?? '').replace(/[&<>"']/g, c =>
+            ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
     }
-
-    /* ── Missed questions ── */
-    let _mqId = 0;
-
-    function skillGroup(section) {
-        return section && section.startsWith('m') ? 'math' : 'rw';
-    }
-
-    function setSection(btn) {
-        const toggle = btn.closest('.section-toggle');
-        toggle.querySelectorAll('.section-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        const sel  = btn.closest('.missed-q-row').querySelector('.q-skill-select');
-        const prev = sel.value;
-        sel.innerHTML = getSkillOptionsHTML(skillGroup(btn.dataset.section));
-        if (prev) sel.value = prev;
-    }
-
-    function addMissedQuestion(num = '', section = 'rw1', skill = '') {
-        const id  = ++_mqId;
-        const mk  = s => `<button type="button" class="section-btn${section === s ? ' active' : ''}" data-section="${s}" onclick="setSection(this)">`;
-        const row = document.createElement('div');
-        row.className = 'missed-q-row';
-        row.id = `mq-${id}`;
-        row.innerHTML = `
-            <span class="q-prefix">Q</span>
-            <input type="number" class="q-num-input" placeholder="—" min="1" max="98" value="${num}">
-            <div class="section-toggle">
-                ${mk('rw1')}RW 1</button>
-                ${mk('rw2')}RW 2</button>
-                <div class="toggle-sep"></div>
-                ${mk('m1')}M 1</button>
-                ${mk('m2')}M 2</button>
-            </div>
-            <select class="q-skill-select">${getSkillOptionsHTML(skillGroup(section))}</select>
-            <button type="button" class="remove-q-btn" onclick="document.getElementById('mq-${id}').remove()" title="Remove">
-                <svg width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                    <line x1="1" y1="1" x2="11" y2="11"/><line x1="11" y1="1" x2="1" y2="11"/>
-                </svg>
-            </button>`;
-        if (skill) row.querySelector('.q-skill-select').value = skill;
-        document.getElementById('missedList').appendChild(row);
-        row.querySelector('.q-num-input').focus();
-    }
-
-    function getMissedQuestions() {
-        return [...document.querySelectorAll('.missed-q-row')].map(row => {
-            const activeBtn = row.querySelector('.section-btn.active');
-            return {
-                num:     row.querySelector('.q-num-input').value.trim(),
-                section: activeBtn ? activeBtn.dataset.section : 'rw1',
-                skill:   row.querySelector('.q-skill-select').value
-            };
-        }).filter(q => q.skill);
-    }
-
-    /* ── Time left helpers ── */
-    function readTimeLeft() {
-        function readSecs(prefix) {
-            const minVal = parseInt(document.getElementById(`tl-${prefix}-min`).value);
-            const secVal = parseInt(document.getElementById(`tl-${prefix}-sec`).value);
-            if (isNaN(minVal) && isNaN(secVal)) return null;
-            return (isNaN(minVal) ? 0 : minVal) * 60 + (isNaN(secVal) ? 0 : Math.min(secVal, 59));
-        }
-        return { rw1: readSecs('rw1'), rw2: readSecs('rw2'), m1: readSecs('m1'), m2: readSecs('m2') };
-    }
-    function clearTimeLeft() {
-        ['rw1','rw2','m1','m2'].forEach(k => {
-            document.getElementById(`tl-${k}-min`).value = '';
-            document.getElementById(`tl-${k}-sec`).value = '';
-        });
-    }
-    function fmtTimeLeft(secs) {
-        if (secs == null) return null;
-        return `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}`;
-    }
-
-    /* ── Formatting ── */
     function todayValue() {
         const d = new Date();
         return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
@@ -635,118 +586,692 @@
         if (h > 0) return `${h} hr`;
         return `${m} min`;
     }
+    function fmtTimeLeft(secs) {
+        if (secs == null) return null;
+        return `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}`;
+    }
+    function pct(n) { return n == null ? '—' : `${Math.round(n * 100)}%`; }
 
-    /* ── Section label ── */
-    function fmtSection(sec) {
-        const map = { rw1: 'RW S1', rw2: 'RW S2', m1: 'M S1', m2: 'M S2', rw: 'R&W', math: 'Math' };
-        return map[sec] || 'R&W';
+    /* ══════════════════════════════════════════
+       Time-left inputs (shared by both modes)
+    ══════════════════════════════════════════ */
+    function buildTimeLeft(containerId, prefix) {
+        document.getElementById(containerId).innerHTML = T.MODULES.map(m => `
+            <div class="time-left-cell">
+                <p class="time-left-sec-label">${esc(m.label)}</p>
+                <div class="time-left-row">
+                    <input type="number" class="tl-num" id="${prefix}-${m.slug}-min" min="0" max="99" placeholder="mm">
+                    <span class="tl-sep">:</span>
+                    <input type="number" class="tl-num" id="${prefix}-${m.slug}-sec" min="0" max="59" placeholder="ss">
+                </div>
+            </div>`).join('');
+    }
+    function readTimeLeft(prefix) {
+        const out = {};
+        T.MODULES.forEach(m => {
+            const mi = parseInt(document.getElementById(`${prefix}-${m.slug}-min`).value);
+            const si = parseInt(document.getElementById(`${prefix}-${m.slug}-sec`).value);
+            out[m.slug] = (isNaN(mi) && isNaN(si))
+                ? null
+                : (isNaN(mi) ? 0 : mi) * 60 + (isNaN(si) ? 0 : Math.min(si, 59));
+        });
+        return out;
+    }
+    function clearTimeLeft(prefix) {
+        T.MODULES.forEach(m => {
+            document.getElementById(`${prefix}-${m.slug}-min`).value = '';
+            document.getElementById(`${prefix}-${m.slug}-sec`).value = '';
+        });
     }
 
-    /* ── Score total preview ── */
-    function updateTotal() {
-        const rw   = parseInt(document.getElementById('rwInput').value)   || 0;
-        const math = parseInt(document.getElementById('mathInput').value) || 0;
-        const num   = document.getElementById('totalPreview');
-        const denom = document.getElementById('totalPreviewDenom');
-        if (rw > 0 || math > 0) {
-            num.textContent   = rw + math;
-            denom.textContent = ' / 1600';
-        } else {
-            num.textContent   = '—';
-            denom.textContent = '';
+    /* ══════════════════════════════════════════
+       Mode switch
+    ══════════════════════════════════════════ */
+    function setMode(mode) {
+        document.getElementById('modeSwitch').dataset.mode = mode;
+        const auto = mode === 'auto';
+        document.getElementById('modeBtnAuto').classList.toggle('active', auto);
+        document.getElementById('modeBtnManual').classList.toggle('active', !auto);
+        document.getElementById('modeBtnAuto').setAttribute('aria-selected', String(auto));
+        document.getElementById('modeBtnManual').setAttribute('aria-selected', String(!auto));
+        document.getElementById('panelAuto').classList.toggle('active', auto);
+        document.getElementById('panelManual').classList.toggle('active', !auto);
+        try { localStorage.setItem('sat_test_mode', mode); } catch {}
+    }
+
+    /* ══════════════════════════════════════════
+       AUTO MODE — JSON upload
+    ══════════════════════════════════════════ */
+    let pendingRecord = null;   // normalized v2.0 record awaiting save
+
+    function showMessages(containerId, errors, warnings, okMsg) {
+        const icons = {
+            error: '<svg class="msg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="7" x2="12" y2="13"/><line x1="12" y1="17" x2="12" y2="17"/></svg>',
+            warn:  '<svg class="msg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9.5 17h-19z"/><line x1="12" y1="10" x2="12" y2="14"/><line x1="12" y1="17" x2="12" y2="17"/></svg>',
+            ok:    '<svg class="msg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 12.5 9.5 18 20 6"/></svg>'
+        };
+        const html = [
+            ...(errors  || []).map(m => `<div class="msg msg-error">${icons.error}<span>${esc(m)}</span></div>`),
+            ...(warnings|| []).map(m => `<div class="msg msg-warn">${icons.warn}<span>${esc(m)}</span></div>`),
+            ...(okMsg   ? [`<div class="msg msg-ok">${icons.ok}<span>${esc(okMsg)}</span></div>`] : [])
+        ].join('');
+        document.getElementById(containerId).innerHTML = html;
+    }
+
+    async function handleFile(file) {
+        if (!file) return;
+        let raw;
+        try {
+            raw = JSON.parse(await file.text());
+        } catch (e) {
+            pendingRecord = null;
+            document.getElementById('autoPreview').style.display = 'none';
+            showMessages('autoMessages', [`${file.name} isn't valid JSON — ${e.message}`]);
+            return;
         }
+
+        const { errors, warnings } = SAT_TESTS.validate(raw);
+        if (errors.length) {
+            pendingRecord = null;
+            document.getElementById('autoPreview').style.display = 'none';
+            showMessages('autoMessages', errors, warnings);
+            return;
+        }
+
+        try {
+            pendingRecord = SAT_TESTS.normalize(raw, { inputMode: 'auto', sourceFile: file.name });
+        } catch (e) {
+            pendingRecord = null;
+            document.getElementById('autoPreview').style.display = 'none';
+            showMessages('autoMessages', [`Could not read that file — ${e.message}`]);
+            return;
+        }
+
+        const meta = pendingRecord.test_metadata;
+        showMessages('autoMessages', [], warnings,
+            `Loaded ${meta.total_questions} questions from ${file.name}. Nothing is saved until you press Save Test.`);
+
+        // Seed the finalize form from the record
+        document.getElementById('autoDate').value = meta.date_completed || todayValue();
+        document.getElementById('autoRw').value   = meta.scores.estimated ? '' : (meta.scores.rw ?? '');
+        document.getElementById('autoMath').value = meta.scores.estimated ? '' : (meta.scores.math ?? '');
+        clearTimeLeft('atl');
+        document.getElementById('autoSession').value = '';
+        document.getElementById('autoPreview').style.display = '';
+        renderAutoPreview();
+        document.getElementById('autoPreview').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
-    /* ── Session dropdown ── */
+    /* Live scores for the preview: user override wins, otherwise the curve. */
+    function currentAutoScores() {
+        const raw = pendingRecord.test_metadata.scores.raw || {};
+        const rwIn   = parseInt(document.getElementById('autoRw').value);
+        const mathIn = parseInt(document.getElementById('autoMath').value);
+        const rwOk   = !isNaN(rwIn),   mathOk = !isNaN(mathIn);
+        return {
+            rw:   rwOk   ? rwIn   : SAT_TESTS.estimateScaled(raw.rw   || 0, raw.rw_total   || 0, 'rw'),
+            math: mathOk ? mathIn : SAT_TESTS.estimateScaled(raw.math || 0, raw.math_total || 0, 'math'),
+            estimated: !rwOk || !mathOk
+        };
+    }
+
+    function renderAutoPreview() {
+        if (!pendingRecord) return;
+        const meta = pendingRecord.test_metadata;
+        const qs   = pendingRecord.questions;
+        const s    = currentAutoScores();
+        const correct = qs.filter(q => q.is_correct).length;
+
+        // A section-only test scores out of 800 — don't pad the missing half
+        // with a zero and present it as a 1600.
+        const fmt   = meta.test_format;
+        const total = fmt === 'rw_only'   ? (s.rw   || 0)
+                    : fmt === 'math_only' ? (s.math || 0)
+                    : (s.rw || 0) + (s.math || 0);
+        const denom = fmt === 'full_test' ? '/ 1600' : '/ 800';
+
+        const modules = T.MODULES
+            .map(m => ({ m, list: qs.filter(q => q.module_slug === m.slug) }))
+            .filter(x => x.list.length);
+
+        document.getElementById('previewCard').innerHTML = `
+            <div class="preview-head">
+                <div style="min-width:0">
+                    <p class="preview-name">${esc(meta.test_name)}</p>
+                    <p class="preview-meta">${esc(meta.source_name || meta.source_type || 'Unknown source')} · ${esc(meta.date_completed || '')}</p>
+                </div>
+                <span class="preview-chip preview-chip--auto">AI import</span>
+            </div>
+            <div class="preview-scores">
+                <span class="preview-total">${s.estimated ? '~' : ''}${total}</span>
+                <span class="preview-denom">${denom}</span>
+                ${s.estimated ? '<span class="preview-chip preview-chip--est">Estimated</span>' : ''}
+            </div>
+            <div class="preview-sub">
+                <span class="preview-sub-item"><span>R&amp;W </span>${s.rw ?? '—'}</span>
+                <span class="preview-sub-item"><span>Math </span>${s.math ?? '—'}</span>
+                <span class="preview-sub-item"><span>Accuracy </span>${correct}/${qs.length} · ${pct(correct / qs.length)}</span>
+            </div>
+            <div class="preview-modules">
+                ${modules.map(({ m, list }) => {
+                    const c = list.filter(q => q.is_correct).length;
+                    return `
+                        <div class="pm-cell">
+                            <p class="pm-label">${esc(m.short)}</p>
+                            <p class="pm-val">${c}<span> / ${list.length}</span></p>
+                            <div class="pm-meter"><div class="pm-meter-fill" style="width:${(c / list.length * 100).toFixed(1)}%"></div></div>
+                        </div>`;
+                }).join('')}
+            </div>`;
+
+        const raw = meta.scores.raw || {};
+        document.getElementById('autoScoreHelp').textContent = s.estimated
+            ? `Estimated from ${raw.rw ?? 0}/${raw.rw_total ?? 0} R&W and ${raw.math ?? 0}/${raw.math_total ?? 0} math correct. Type your reported scores to replace the estimate.`
+            : 'Using the scores you entered.';
+    }
+
+    async function saveAuto() {
+        if (!pendingRecord) { showToast('Load a file first'); return; }
+
+        const dateVal = document.getElementById('autoDate').value;
+        if (!dateVal) { showToast('Pick a date first'); return; }
+
+        const rwIn   = document.getElementById('autoRw').value.trim();
+        const mathIn = document.getElementById('autoMath').value.trim();
+        for (const [label, v] of [['R&W', rwIn], ['Math', mathIn]]) {
+            if (v === '') continue;
+            const n = parseInt(v);
+            if (isNaN(n) || n < 200 || n > 800) { showToast(`${label} score must be 200–800`); return; }
+        }
+
+        const record = SAT_TESTS.normalize(pendingRecord, {
+            inputMode: 'auto',
+            date: dateVal,
+            scores: { rw: rwIn === '' ? null : parseInt(rwIn), math: mathIn === '' ? null : parseInt(mathIn) },
+            timeLeft: readTimeLeft('atl'),
+            linkedSessionId: document.getElementById('autoSession').value || null
+        });
+
+        const summary = await SAT_TESTS.save(record);
+        const sl = SAT_TESTS.scoreLabel(summary);
+        resetAuto();
+        await refresh();
+        showToast(`${summary.testName} saved — ${sl.value} ${sl.denom}`);
+    }
+
+    function resetAuto() {
+        pendingRecord = null;
+        document.getElementById('autoPreview').style.display = 'none';
+        document.getElementById('autoMessages').innerHTML = '';
+        document.getElementById('fileInput').value = '';
+    }
+
+    function setupDropzone() {
+        const dz = document.getElementById('dropzone');
+        const fi = document.getElementById('fileInput');
+
+        dz.addEventListener('click', () => fi.click());
+        dz.addEventListener('keydown', e => {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fi.click(); }
+        });
+        fi.addEventListener('change', () => handleFile(fi.files[0]));
+
+        ['dragenter', 'dragover'].forEach(ev =>
+            dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.add('drag'); }));
+        ['dragleave', 'drop'].forEach(ev =>
+            dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.remove('drag'); }));
+        dz.addEventListener('drop', e => {
+            const f = e.dataTransfer.files && e.dataTransfer.files[0];
+            if (f) handleFile(f);
+        });
+    }
+
+    /* ══════════════════════════════════════════
+       MANUAL MODE
+       State mirrors the canonical record: a module list with counts, plus a
+       detail map keyed "<module>:<question number>" for every missed question.
+    ══════════════════════════════════════════ */
+    const manual = {
+        format: 'full_test',
+        counts: { rw1: 27, rw2: 27, m1: 22, m2: 22 },
+        missed: {}   // "rw1:5" → { domain, skill, difficulty, errorPattern, format, userAnswer, correctAnswer }
+    };
+
+    function activeModules() {
+        return T.MODULES.filter(m =>
+            manual.format === 'full_test' ||
+            (manual.format === 'rw_only'   && m.section === 'rw') ||
+            (manual.format === 'math_only' && m.section === 'math'));
+    }
+
+    function setFormat(fmt) {
+        manual.format = fmt;
+        document.querySelectorAll('#mFormat .fmt-btn').forEach(b =>
+            b.classList.toggle('active', b.dataset.fmt === fmt));
+        // Drop detail for modules that are no longer part of the test.
+        const live = new Set(activeModules().map(m => m.slug));
+        Object.keys(manual.missed).forEach(k => {
+            if (!live.has(k.split(':')[0])) delete manual.missed[k];
+        });
+        renderModCounts();
+        renderGrids();
+        renderMissedList();
+        renderManualTotals();
+    }
+
+    function renderModCounts() {
+        document.getElementById('mModCounts').innerHTML = activeModules().map(m => `
+            <div class="mod-count-cell">
+                <span class="mod-count-label">${esc(m.short)}</span>
+                <input type="number" class="mod-count-input" min="1" max="60"
+                       value="${manual.counts[m.slug]}"
+                       oninput="setModCount('${m.slug}', this.value)">
+            </div>`).join('');
+    }
+
+    function setModCount(slug, value) {
+        const n = Math.max(1, Math.min(60, parseInt(value) || 1));
+        manual.counts[slug] = n;
+        // Forget any missed question that no longer exists.
+        Object.keys(manual.missed).forEach(k => {
+            const [s, num] = k.split(':');
+            if (s === slug && Number(num) > n) delete manual.missed[k];
+        });
+        renderGrids();
+        renderMissedList();
+        renderManualTotals();
+    }
+
+    function isComplete(d) { return !!(d && d.skill); }
+
+    function renderGrids() {
+        document.getElementById('mGrids').innerHTML = activeModules().map(m => {
+            const n = manual.counts[m.slug];
+            const missedInMod = Object.keys(manual.missed).filter(k => k.startsWith(m.slug + ':')).length;
+            const cells = Array.from({ length: n }, (_, i) => {
+                const num = i + 1;
+                const d   = manual.missed[`${m.slug}:${num}`];
+                const cls = d ? (isComplete(d) ? 'missed' : 'missed incomplete') : 'correct';
+                return `<button type="button" class="qcell ${cls}"
+                                onclick="toggleQ('${m.slug}', ${num})"
+                                aria-pressed="${d ? 'true' : 'false'}"
+                                title="${esc(m.short)} Q${num} — ${d ? 'missed' : 'correct'}">${num}</button>`;
+            }).join('');
+            return `
+                <div class="qgrid-module">
+                    <div class="qgrid-head">
+                        <span class="qgrid-title">${esc(m.label)}</span>
+                        <span class="qgrid-count">${n - missedInMod} / ${n} correct</span>
+                    </div>
+                    <div class="qgrid">${cells}</div>
+                </div>`;
+        }).join('');
+    }
+
+    function toggleQ(slug, num) {
+        const key = `${slug}:${num}`;
+        if (manual.missed[key]) delete manual.missed[key];
+        else manual.missed[key] = {
+            domain: '', skill: '', difficulty: 'Medium', errorPattern: '',
+            format: 'multiple_choice', userAnswer: '', correctAnswer: ''
+        };
+        renderGrids();
+        renderMissedList();
+        renderManualTotals();
+    }
+
+    function missedKeysOrdered() {
+        const order = Object.fromEntries(T.MODULES.map((m, i) => [m.slug, i]));
+        return Object.keys(manual.missed).sort((a, b) => {
+            const [sa, na] = a.split(':'), [sb, nb] = b.split(':');
+            return (order[sa] - order[sb]) || (Number(na) - Number(nb));
+        });
+    }
+
+    function renderMissedList() {
+        const keys = missedKeysOrdered();
+        document.getElementById('mMissedWrap').style.display = keys.length ? '' : 'none';
+        if (!keys.length) { document.getElementById('mMissedList').innerHTML = ''; return; }
+
+        document.getElementById('mMissedList').innerHTML = keys.map(key => {
+            const [slug, num] = key.split(':');
+            const d       = manual.missed[key];
+            const section = T.sectionOfModule(slug);
+            const mod     = T.MODULE_BY_SLUG[slug];
+
+            const domainOpts = ['<option value="">— Domain —</option>']
+                .concat(T.domainsOf(section).map(dn =>
+                    `<option value="${esc(dn)}"${d.domain === dn ? ' selected' : ''}>${esc(dn)}</option>`))
+                .join('');
+
+            const skills = d.domain ? T.skillsOf(section, d.domain) : [];
+            const skillOpts = ['<option value="">— Skill —</option>']
+                .concat(skills.map(sk =>
+                    `<option value="${esc(sk.label)}"${d.skill === sk.label ? ' selected' : ''}>${esc(sk.label)}</option>`))
+                .join('');
+
+            const diffBtns = ['Easy', 'Medium', 'Hard'].map(lv =>
+                `<button type="button" class="diff-btn${d.difficulty === lv ? ' active' : ''}"
+                         data-diff="${lv}" onclick="setMissed('${key}','difficulty','${lv}')">${lv}</button>`).join('');
+
+            return `
+                <div class="mq-card">
+                    <div class="mq-card-head">
+                        <span class="mq-tag">${esc(mod.short)} · Q${num}</span>
+                        <button type="button" class="remove-q-btn" title="Mark correct again"
+                                onclick="toggleQ('${slug}', ${num})">
+                            <svg width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                                <line x1="1" y1="1" x2="11" y2="11"/><line x1="11" y1="1" x2="1" y2="11"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="mq-row">
+                        <div class="mq-field">
+                            <span class="mq-label">Domain</span>
+                            <select class="mini-select${d.domain ? '' : ' needed'}"
+                                    onchange="setMissed('${key}','domain',this.value)">${domainOpts}</select>
+                        </div>
+                        <div class="mq-field">
+                            <span class="mq-label">Skill</span>
+                            <select class="mini-select${d.skill ? '' : ' needed'}" ${d.domain ? '' : 'disabled'}
+                                    onchange="setMissed('${key}','skill',this.value)">${skillOpts}</select>
+                        </div>
+                    </div>
+
+                    <div class="mq-field">
+                        <span class="mq-label">Difficulty</span>
+                        <div class="diff-toggle">${diffBtns}</div>
+                    </div>
+
+                    <div class="mq-field">
+                        <span class="mq-label">Error pattern</span>
+                        <input type="text" class="mini-input" list="errorPatterns${section === 'math' ? 'Math' : 'RW'}"
+                               placeholder="What went wrong?" value="${esc(d.errorPattern)}"
+                               oninput="setMissed('${key}','errorPattern',this.value,true)">
+                    </div>
+
+                    <div class="mq-row">
+                        <div class="mq-field">
+                            <span class="mq-label">Your answer</span>
+                            <input type="text" class="mini-input" maxlength="12" placeholder="—"
+                                   value="${esc(d.userAnswer)}"
+                                   oninput="setMissed('${key}','userAnswer',this.value,true)">
+                        </div>
+                        <div class="mq-field">
+                            <span class="mq-label">Correct answer</span>
+                            <input type="text" class="mini-input" maxlength="12" placeholder="—"
+                                   value="${esc(d.correctAnswer)}"
+                                   oninput="setMissed('${key}','correctAnswer',this.value,true)">
+                        </div>
+                    </div>
+                </div>`;
+        }).join('');
+    }
+
+    /* `quiet` skips the re-render so typing in a text field doesn't lose focus. */
+    function setMissed(key, field, value, quiet) {
+        const d = manual.missed[key];
+        if (!d) return;
+        d[field] = value;
+        if (field === 'domain') d.skill = '';        // skills are scoped to a domain
+        // Clear a stale "fill these in" error once nothing is left unfilled.
+        if (missedKeysOrdered().every(k => isComplete(manual.missed[k]))) {
+            showMessages('manualMessages', []);
+        }
+        if (quiet) { renderGrids(); return; }
+        renderGrids();
+        renderMissedList();
+    }
+
+    function manualRawCounts() {
+        let rw = 0, rwT = 0, math = 0, mathT = 0;
+        activeModules().forEach(m => {
+            const n = manual.counts[m.slug];
+            const miss = Object.keys(manual.missed).filter(k => k.startsWith(m.slug + ':')).length;
+            if (m.section === 'rw') { rwT += n; rw += n - miss; }
+            else                    { mathT += n; math += n - miss; }
+        });
+        return { rw, rw_total: rwT, math, math_total: mathT };
+    }
+
+    function currentManualScores() {
+        const raw    = manualRawCounts();
+        const rwIn   = parseInt(document.getElementById('mRw').value);
+        const mathIn = parseInt(document.getElementById('mMath').value);
+        const rwOk   = !isNaN(rwIn), mathOk = !isNaN(mathIn);
+        return {
+            raw,
+            rw:   rwOk   ? rwIn   : (raw.rw_total   ? SAT_TESTS.estimateScaled(raw.rw,   raw.rw_total,   'rw')   : null),
+            math: mathOk ? mathIn : (raw.math_total ? SAT_TESTS.estimateScaled(raw.math, raw.math_total, 'math') : null),
+            estimated: (raw.rw_total && !rwOk) || (raw.math_total && !mathOk)
+        };
+    }
+
+    function renderManualTotals() {
+        const s = currentManualScores();
+        const total = manual.format === 'rw_only'   ? (s.rw   || 0)
+                    : manual.format === 'math_only' ? (s.math || 0)
+                    : (s.rw || 0) + (s.math || 0);
+        const denom = manual.format === 'full_test' ? ' / 1600' : ' / 800';
+
+        /* An untouched form has no misses, so the curve reads it as a perfect
+           score — showing "~1600" before the user has marked anything is noise,
+           not a result. Wait until they've marked a miss or typed a score. */
+        const typedScore = document.getElementById('mRw').value.trim() !== '' ||
+                           document.getElementById('mMath').value.trim() !== '';
+        const meaningful = typedScore || Object.keys(manual.missed).length > 0;
+
+        const show = meaningful && total;
+        document.getElementById('mTotalPreview').textContent = show ? `${s.estimated ? '~' : ''}${total}` : '—';
+        document.getElementById('mTotalDenom').textContent   = show ? denom : '';
+        document.getElementById('mTotalLabel').textContent   =
+            show && s.estimated ? 'Estimated total' : 'Total';
+    }
+
+    function buildManualRecord() {
+        const questions = [];
+        activeModules().forEach(m => {
+            for (let num = 1; num <= manual.counts[m.slug]; num++) {
+                const d = manual.missed[`${m.slug}:${num}`];
+                questions.push({
+                    question_number: num,
+                    module: m.section === 'math' ? 'Math' : 'Reading and Writing',
+                    module_slug: m.slug,
+                    question_format: d ? d.format : 'multiple_choice',
+                    user_answer: d && d.userAnswer ? d.userAnswer : null,
+                    correct_answer: d && d.correctAnswer ? d.correctAnswer : null,
+                    is_correct: !d,
+                    domain: d ? (d.domain || null) : null,
+                    skill: d ? (d.skill || null) : null,
+                    difficulty: d ? d.difficulty : null,
+                    difficulty_source: d ? 'user' : null,
+                    error_pattern: d && d.errorPattern ? d.errorPattern : null
+                });
+            }
+        });
+
+        const rwIn   = document.getElementById('mRw').value.trim();
+        const mathIn = document.getElementById('mMath').value.trim();
+
+        return SAT_TESTS.normalize({
+            schema_version: '1.0',
+            test_metadata: {
+                test_name:    document.getElementById('mTestName').value.trim() || 'Practice test',
+                source_name:  document.getElementById('mSource').value.trim() || null,
+                source_type:  'unknown',
+                date_completed: document.getElementById('mDate').value,
+                test_format:  manual.format
+            },
+            questions
+        }, {
+            inputMode: 'manual',
+            date: document.getElementById('mDate').value,
+            scores: { rw: rwIn === '' ? null : parseInt(rwIn), math: mathIn === '' ? null : parseInt(mathIn) },
+            timeLeft: readTimeLeft('mtl'),
+            linkedSessionId: document.getElementById('mSession').value || null
+        });
+    }
+
+    async function saveManual() {
+        const errors = [];
+        if (!document.getElementById('mDate').value) errors.push('Pick a date for this test.');
+
+        const incomplete = missedKeysOrdered().filter(k => !isComplete(manual.missed[k]));
+        if (incomplete.length) {
+            const labels = incomplete.slice(0, 5)
+                .map(k => { const [s, n] = k.split(':'); return `${T.MODULE_BY_SLUG[s].short} Q${n}`; })
+                .join(', ');
+            errors.push(`Pick a domain and skill for every missed question — still missing: ${labels}${incomplete.length > 5 ? '…' : ''}`);
+        }
+        for (const [label, id] of [['R&W', 'mRw'], ['Math', 'mMath']]) {
+            const v = document.getElementById(id).value.trim();
+            if (v === '') continue;
+            const n = parseInt(v);
+            if (isNaN(n) || n < 200 || n > 800) errors.push(`${label} score must be 200–800.`);
+        }
+        if (errors.length) {
+            showMessages('manualMessages', errors);
+            document.getElementById('manualMessages').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
+        }
+
+        showMessages('manualMessages', []);
+        const summary = await SAT_TESTS.save(buildManualRecord());
+        const sl = SAT_TESTS.scoreLabel(summary);
+        resetManual();
+        await refresh();
+        showToast(`${summary.testName} saved — ${sl.value} ${sl.denom}`);
+    }
+
+    function resetManual() {
+        manual.format = 'full_test';
+        manual.counts = { rw1: 27, rw2: 27, m1: 22, m2: 22 };
+        manual.missed = {};
+        document.getElementById('mTestName').value = '';
+        document.getElementById('mSource').value   = '';
+        document.getElementById('mDate').value     = todayValue();
+        document.getElementById('mRw').value       = '';
+        document.getElementById('mMath').value     = '';
+        document.getElementById('mSession').value  = '';
+        clearTimeLeft('mtl');
+        showMessages('manualMessages', []);
+        document.querySelectorAll('#mFormat .fmt-btn').forEach(b =>
+            b.classList.toggle('active', b.dataset.fmt === 'full_test'));
+        renderModCounts();
+        renderGrids();
+        renderMissedList();
+        renderManualTotals();
+    }
+
+    function buildErrorPatternLists() {
+        document.getElementById('errorPatternsRW').innerHTML =
+            T.ERROR_PATTERNS.rw.map(p => `<option value="${esc(p)}">`).join('');
+        document.getElementById('errorPatternsMath').innerHTML =
+            T.ERROR_PATTERNS.math.map(p => `<option value="${esc(p)}">`).join('');
+    }
+
+    /* ══════════════════════════════════════════
+       Shared page rendering
+    ══════════════════════════════════════════ */
     async function loadSessions() {
         const sessions = (await SAT_STORAGE.getSessions())
             .sort((a, b) => new Date(b.date) - new Date(a.date));
-        const sel = document.getElementById('sessionSelect');
-        sel.innerHTML = '<option value="">No linked session</option>' +
-            sessions.map(s =>
-                `<option value="${s.id}">${fmtDate(s.date)} — ${fmtDuration(s.duration)}</option>`
-            ).join('');
+        const html = '<option value="">No linked session</option>' +
+            sessions.map(s => `<option value="${esc(s.id)}">${fmtDate(s.date)} — ${fmtDuration(s.duration)}</option>`).join('');
+        document.getElementById('autoSession').innerHTML = html;
+        document.getElementById('mSession').innerHTML    = html;
     }
 
-    /* ── Last test card ── */
     async function renderLastTest() {
-        const tests = (await SAT_STORAGE.getTests())
-            .sort((a, b) => new Date(b.date) - new Date(a.date));
-        const card = document.getElementById('lastTestCard');
-        if (tests.length === 0) { card.style.display = 'none'; return; }
+        const tests = await SAT_TESTS.getSummaries();
+        const card  = document.getElementById('lastTestCard');
+        if (!tests.length) { card.style.display = 'none'; return; }
 
         const t = tests[0];
         card.style.display = '';
         document.getElementById('lastTestDate').textContent = fmtDate(t.date);
-        document.getElementById('lastTotal').textContent    = t.rwScore + t.mathScore;
-        document.getElementById('lastRW').textContent       = t.rwScore;
-        document.getElementById('lastMath').textContent     = t.mathScore;
+        const sl = SAT_TESTS.scoreLabel(t);
+        document.getElementById('lastTotal').textContent = sl.value;
+        document.getElementById('lastDenom').textContent = sl.denom;
+        document.getElementById('lastRW').textContent   = t.rwScore;
+        document.getElementById('lastMath').textContent = t.mathScore;
+
+        const accWrap = document.getElementById('lastAccWrap');
+        if (t.hasDetail && t.accuracy != null) {
+            accWrap.style.display = '';
+            document.getElementById('lastAcc').textContent = `${t.correctCount}/${t.totalQuestions} · ${pct(t.accuracy)}`;
+        } else {
+            accWrap.style.display = 'none';
+        }
 
         const missedLabel = document.getElementById('lastMissedLabel');
         const missedTags  = document.getElementById('lastMissedTags');
         const questions   = t.missedQuestions || [];
 
-        if (questions.length === 0) {
+        if (!questions.length) {
             missedLabel.style.display = 'none';
             missedTags.innerHTML = '<span class="no-missed">No questions missed</span>';
         } else {
             missedLabel.style.display = '';
-            missedTags.innerHTML = questions.map(q => {
-                const sec   = fmtSection(q.section);
-                const label = q.num ? `Q${q.num} (${sec}) · ${q.skill}` : `${sec} · ${q.skill}`;
-                return `<span class="missed-tag">${label}</span>`;
-            }).join('');
+            // Group by skill so a 30-miss test doesn't render 30 chips.
+            const bySkill = {};
+            questions.forEach(q => { bySkill[q.skill] = (bySkill[q.skill] || 0) + 1; });
+            missedTags.innerHTML = Object.entries(bySkill)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10)
+                .map(([skill, n]) => `<span class="missed-tag">${esc(skill)}${n > 1 ? ` ×${n}` : ''}</span>`)
+                .join('');
         }
 
         const tlRow = document.getElementById('lastTimeLeft');
         const tl    = t.timeLeft || {};
-        const secLabels = { rw1: 'RW S1', rw2: 'RW S2', m1: 'M S1', m2: 'M S2' };
-        const tlParts   = Object.entries(secLabels)
-            .filter(([k]) => tl[k] != null)
-            .map(([k, lbl]) => `<span class="tl-card-item"><strong>${lbl}</strong> ${fmtTimeLeft(tl[k])} left</span>`);
-        if (tlParts.length > 0) {
-            tlRow.innerHTML    = tlParts.join('');
-            tlRow.style.display = '';
-        } else {
-            tlRow.style.display = 'none';
-        }
+        const parts = T.MODULES
+            .filter(m => tl[m.slug] != null)
+            .map(m => `<span class="tl-card-item"><strong>${esc(m.short)}</strong> ${fmtTimeLeft(tl[m.slug])} left</span>`);
+        tlRow.innerHTML = parts.join('');
+        tlRow.style.display = parts.length ? '' : 'none';
     }
 
-    /* ── Test list ── */
     async function renderTestList() {
-        const tests = (await SAT_STORAGE.getTests())
-            .sort((a, b) => new Date(b.date) - new Date(a.date));
+        const tests  = await SAT_TESTS.getSummaries();
         const listEl = document.getElementById('testList');
 
-        if (tests.length === 0) {
+        if (!tests.length) {
             listEl.innerHTML = `<div class="empty-state"><p class="empty-sub">No practice tests logged yet</p></div>`;
             return;
         }
 
         const header = `
             <div class="list-header">
-                <span class="list-col-label">Date</span>
+                <span class="list-col-label">Test</span>
                 <span class="list-col-label right">Score</span>
                 <span></span>
             </div>`;
 
         const rows = tests.map(t => {
-            const total   = t.rwScore + t.mathScore;
-            const missed  = t.missedQuestions || [];
-            const missedTxt = missed.length === 0 ? 'No questions missed'
-                            : missed.length === 1 ? '1 question missed'
-                            : `${missed.length} questions missed`;
+            const sl     = SAT_TESTS.scoreLabel(t);
+            const missed = (t.missedQuestions || []).length;
+            const sub = t.hasDetail && t.totalQuestions
+                ? `${t.correctCount} of ${t.totalQuestions} correct · ${pct(t.accuracy)}`
+                : missed === 0 ? 'No questions missed'
+                : missed === 1 ? '1 question missed'
+                : `${missed} questions missed`;
+            const badge = t.inputMode === 'auto'
+                ? '<span class="test-badge test-badge--auto">AI</span>'
+                : t.inputMode === 'manual'
+                ? '<span class="test-badge test-badge--manual">Manual</span>' : '';
             return `
-                <div class="test-row" id="trow-${t.id}">
-                    <div>
-                        <div class="test-date">${fmtDate(t.date)}</div>
-                        <div class="test-date-sub">${missedTxt}</div>
+                <div class="test-row" id="trow-${esc(t.id)}">
+                    <div style="min-width:0">
+                        <div class="test-date">${esc(t.testName || 'Practice test')}${badge}</div>
+                        <div class="test-date-sub">${fmtDate(t.date)} · ${sub}</div>
                     </div>
                     <div class="test-score-col">
-                        <div class="test-score-main">${total} <span style="color:var(--gray-text);font-size:12px;font-weight:400">/ 1600</span></div>
-                        <div class="test-score-sub">R&amp;W ${t.rwScore} &nbsp;·&nbsp; Math ${t.mathScore}</div>
+                        <div class="test-score-main">${sl.value} <span style="color:var(--gray-text);font-size:12px;font-weight:400">${sl.denom}</span></div>
+                        <div class="test-score-sub">${sl.note ? esc(sl.note) : `R&amp;W ${t.rwScore} &nbsp;·&nbsp; Math ${t.mathScore}`}</div>
                     </div>
-                    <button class="delete-btn" onclick="deleteTest('${t.id}')" title="Delete">
+                    <button class="delete-btn" onclick="deleteTest('${esc(t.id)}')" title="Delete">
                         <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
                             <line x1="1" y1="1" x2="11" y2="11"/><line x1="11" y1="1" x2="1" y2="11"/>
                         </svg>
@@ -757,56 +1282,16 @@
         listEl.innerHTML = header + rows;
     }
 
-    /* ── Log test ── */
-    async function logTest() {
-        const dateVal   = document.getElementById('dateInput').value;
-        const rwVal     = parseInt(document.getElementById('rwInput').value);
-        const mathVal   = parseInt(document.getElementById('mathInput').value);
-        const questions = getMissedQuestions();
-        const sessionId = document.getElementById('sessionSelect').value;
-
-        if (!dateVal) { showToast('Pick a date first'); return; }
-        if (isNaN(rwVal)   || rwVal   < 200 || rwVal   > 800) { showToast('R&W score must be 200–800');  return; }
-        if (isNaN(mathVal) || mathVal < 200 || mathVal > 800) { showToast('Math score must be 200–800'); return; }
-
-        const [yr, mo, dy] = dateVal.split('-').map(Number);
-        const date = new Date(yr, mo - 1, dy, 12, 0, 0);
-
-        const timeLeft = readTimeLeft();
-
-        const tests = await SAT_STORAGE.getTests();
-        tests.push({
-            id:              Date.now().toString(),
-            date:            date.toISOString(),
-            rwScore:         rwVal,
-            mathScore:       mathVal,
-            missedQuestions: questions,
-            linkedSessionId: sessionId || null,
-            timeLeft
-        });
-        await SAT_STORAGE.saveTests(tests);
-
-        document.getElementById('rwInput').value   = '';
-        document.getElementById('mathInput').value = '';
-        document.getElementById('totalPreview').textContent      = '—';
-        document.getElementById('totalPreviewDenom').textContent = '';
-        document.getElementById('missedList').innerHTML = '';
-        document.getElementById('sessionSelect').value = '';
-        clearTimeLeft();
-
-        await renderLastTest();
-        await renderTestList();
-        showToast(`Test logged — ${rwVal + mathVal} / 1600`);
-    }
-
-    /* ── Delete test ── */
     async function deleteTest(id) {
         if (!confirm('Remove this test from your history?')) return;
-        const tests = (await SAT_STORAGE.getTests()).filter(t => t.id !== id);
-        await SAT_STORAGE.saveTests(tests);
+        await SAT_TESTS.remove(id);
+        await refresh();
+        showToast('Test removed');
+    }
+
+    async function refresh() {
         await renderLastTest();
         await renderTestList();
-        showToast('Test removed');
     }
 
     /* ── Toast ── */
@@ -819,12 +1304,13 @@
         toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
     }
 
-    /* ── Boot ── */
-    /* ── Align each white reveal label to its real pill's exact measured
-       position. Two independently flex-laid-out rows of the same text can
-       land a fraction of a pixel apart — enough for the antialiased glyph
-       edges to leave a faint gray ghost where they don't perfectly overlap.
-       Copying each real pill's own rect removes that guesswork entirely. */
+    /* ══════════════════════════════════════════
+       Nav chrome
+    ══════════════════════════════════════════ */
+    /* Align each white reveal label to its real pill's exact measured position.
+       Two independently flex-laid-out rows of the same text can land a fraction
+       of a pixel apart — enough for the antialiased glyph edges to leave a faint
+       gray ghost where they don't perfectly overlap. */
     function alignRevealLabels() {
         const navPills = document.querySelector('.nav-pills');
         const reveal = document.querySelector('.nav-pill-reveal');
@@ -841,12 +1327,6 @@
         });
     }
 
-    /* ── Nav indicator animation (slides across page loads, never clipped) ──
-       Positioned relative to .top-nav (not .nav-pills), since .nav-pills
-       clips its contents (overflow-x: auto for the scrollable pill strip),
-       and the bouncy overshoot easing briefly travels past the edge of the
-       first/last pill mid-slide. .top-nav never clips, so the indicator
-       stays visible above every background even during that overshoot. */
     function positionIndicator(pillEl, animate) {
         const topNav = document.querySelector('.top-nav');
         const navPills = document.querySelector('.nav-pills');
@@ -873,9 +1353,6 @@
         indicator.style.top = `${top}px`;
         indicator.style.height = `${height}px`;
 
-        // White-text reveal: clip window mirrors the indicator's own
-        // left/width (same transition duration/easing), so the pill text
-        // only reads white exactly where the indicator currently covers it.
         if (reveal) {
             const revealRect = reveal.getBoundingClientRect();
             const revealLeft = pillRect.left - revealRect.left;
@@ -884,7 +1361,7 @@
         }
 
         if (!animate) {
-            void indicator.offsetWidth; // force reflow so the next change transitions
+            void indicator.offsetWidth;
             indicator.classList.remove('no-transition');
             if (reveal) { void reveal.offsetWidth; reveal.classList.remove('no-transition'); }
         }
@@ -911,7 +1388,6 @@
         }
         sessionStorage.setItem('navActiveHref', currentHref);
 
-        // Keep the indicator glued to the active pill while the strip is scrolled/dragged
         const navPills = document.querySelector('.nav-pills');
         if (navPills && !navPills.dataset.indicatorScrollBound) {
             navPills.addEventListener('scroll', () => positionIndicator(activePill, false));
@@ -919,7 +1395,6 @@
         }
     }
 
-    /* ── Drag-to-scroll (mouse) for nav pills ── */
     function setupNavDrag() {
         const navPills = document.querySelector('.nav-pills');
         if (!navPills) return;
@@ -942,32 +1417,43 @@
             if (Math.abs(delta) > 4) dragged = true;
             navPills.scrollLeft = startScroll - delta;
         });
-        // Suppress the click-navigation that would otherwise fire right after a drag
         navPills.addEventListener('click', (e) => {
             if (dragged) { e.preventDefault(); e.stopPropagation(); }
         }, true);
     }
 
+    /* ══════════════════════════════════════════
+       Boot
+    ══════════════════════════════════════════ */
     document.addEventListener('DOMContentLoaded', async () => {
-        document.getElementById('dateInput').value = todayValue();
+        buildTimeLeft('autoTimeLeft', 'atl');
+        buildTimeLeft('mTimeLeft', 'mtl');
+        buildErrorPatternLists();
+        setupDropzone();
+
+        document.getElementById('autoDate').value = todayValue();
+        resetManual();
+
+        let saved = 'auto';
+        try { saved = localStorage.getItem('sat_test_mode') || 'auto'; } catch {}
+        setMode(saved === 'manual' ? 'manual' : 'auto');
+
         await loadSessions();
-        await renderLastTest();
-        await renderTestList();
+        await refresh();
+
         alignRevealLabels();
         updateNavIndicator();
         window.addEventListener('resize', () => { alignRevealLabels(); updateNavIndicator(); });
         setupNavDrag();
-        // Re-measure once the web font actually finishes loading — at DOMContentLoaded
-        // it's often still using a fallback font, so the initial measurement can be
-        // slightly off from where the real pills land once Inter swaps in.
+        // Re-measure once the web font finishes loading — at DOMContentLoaded the
+        // pills are often still laid out in a fallback face.
         if (document.fonts && document.fonts.ready) {
             document.fonts.ready.then(() => { alignRevealLabels(); updateNavIndicator(); });
         }
     });
-    window.addEventListener('sat:synced', async () => {
-        await renderLastTest();
-        await renderTestList();
-    });
+
+    window.addEventListener('sat:synced',     async () => { await loadSessions(); await refresh(); });
+    window.addEventListener('sat:testsynced', refresh);
 </script>
 </body>
 </html>

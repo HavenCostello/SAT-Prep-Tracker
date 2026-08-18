@@ -73,8 +73,8 @@
             color: var(--gray-text);
         }
         .skill-trend-meta .trend-stat-val { color: var(--dark); font-weight: 500; }
-        .skill-trend-meta .trend-up   { color: #9e2a2b; font-weight: 500; }
-        .skill-trend-meta .trend-down { color: #2f6b4f; font-weight: 500; }
+        .skill-trend-meta .trend-up   { color: var(--dark);      font-weight: 600; }
+        .skill-trend-meta .trend-down { color: var(--gray-text); font-weight: 500; }
         .skill-trend-empty {
             font-family: 'Libre Baskerville', serif;
             font-style: italic;
@@ -97,8 +97,8 @@
             text-transform: uppercase;
             margin-bottom: 0.625rem;
         }
-        .skill-progress-col-label--up   { color: #2f6b4f; }
-        .skill-progress-col-label--down { color: #9e2a2b; }
+        .skill-progress-col-label--up   { color: var(--gray-text); }
+        .skill-progress-col-label--down { color: var(--dark); }
         .skill-progress-row {
             display: flex;
             align-items: center;
@@ -126,8 +126,8 @@
             flex-shrink: 0;
             white-space: nowrap;
         }
-        .skill-progress-delta--up   { color: #2f6b4f; }
-        .skill-progress-delta--down { color: #9e2a2b; }
+        .skill-progress-delta--up   { color: var(--gray-text); }
+        .skill-progress-delta--down { color: var(--dark); font-weight: 600; }
 
         /* ── Missed-skills breakdown ── */
         .breakdown-section {
@@ -286,8 +286,8 @@
             margin-bottom: 0.375rem;
             color: var(--white);
         }
-        .missed-sec-chip--rw   { background: #003566; }
-        .missed-sec-chip--math { background: #9e2a2b; }
+        .missed-sec-chip--rw   { background: var(--rw); }
+        .missed-sec-chip--math { background: var(--math); }
         .missed-rows { display: flex; flex-direction: column; }
         .missed-row {
             display: flex;
@@ -305,8 +305,8 @@
             flex-shrink: 0;
             font-variant-numeric: tabular-nums;
         }
-        .missed-row-num--rw   { color: #003566; }
-        .missed-row-num--math { color: #9e2a2b; }
+        .missed-row-num--rw   { color: var(--rw); }
+        .missed-row-num--math { color: var(--math); }
         .missed-row-skill {
             font-weight: 500;
             letter-spacing: -0.02em;
@@ -629,6 +629,24 @@
         </div>
     </div>
 
+    <!-- Accuracy by domain -->
+    <div class="section-breakdown">
+        <p class="section-breakdown-title">Accuracy by domain</p>
+        <div id="domainAccList"><p class="panel-empty">No question-level data yet</p></div>
+    </div>
+
+    <!-- Accuracy by difficulty -->
+    <div class="section-breakdown">
+        <p class="section-breakdown-title">Accuracy by difficulty</p>
+        <div id="difficultyAccList"><p class="panel-empty">No question-level data yet</p></div>
+    </div>
+
+    <!-- Recurring error patterns -->
+    <div class="section-breakdown">
+        <p class="section-breakdown-title">Recurring error patterns</p>
+        <div id="errorPatternList"><p class="panel-empty">No error patterns logged yet</p></div>
+    </div>
+
     <!-- Skill progress (improving / worsening) -->
     <div class="section-breakdown">
         <p class="section-breakdown-title">Improving &amp; worsening skills</p>
@@ -680,6 +698,8 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script src="firebase-config.js"></script>
 <script src="storage.js"></script>
+<script src="sat-taxonomy.js"></script>
+<script src="test-store.js"></script>
 <script src="firebase-init.js"></script>
 <script src="pwa-init.js"></script>
 <script>
@@ -690,6 +710,55 @@
     const MONTHS      = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     const MONTHS_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
     const DAYS        = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+    function esc(v) {
+        return String(v ?? '').replace(/[&<>"']/g, c =>
+            ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+    }
+    function pctText(n) { return n == null ? '—' : `${Math.round(n * 100)}%`; }
+
+    /* One accuracy row. `accuracy` is null when no test in range classified
+       every question on this dimension (a manually entered test knows its
+       misses but not its denominator), so the row shows the miss count alone
+       rather than inventing a rate. */
+    function accRowHTML(opts) {
+        const { name, accuracy, correct, total, missed, color, attrs = '', lead = 'accuracy' } = opts;
+        const width = accuracy == null ? 0 : Math.max(accuracy * 100, 1.5);
+        // Lead with whatever the list is ordered by, so the number your eye
+        // lands on is the one that put the row in that position.
+        /* When the misses all came from tests that also knew their denominator,
+           the rate describes the whole row and reads as a plain percentage.
+           When some misses came from a test that only classified its wrong
+           answers, the rate covers a smaller sample than the miss count does —
+           saying so is the difference between "1× · 100%" (nonsense at a
+           glance) and "1 missed · 12/12 counted" (true and readable). */
+        const rateCoversAll = accuracy != null && missed === total - correct;
+        const right = accuracy == null
+            ? `<strong>${missed}</strong> missed`
+            : lead === 'missed'
+            ? (rateCoversAll
+                ? `<strong>${missed}</strong> missed · ${pctText(accuracy)} of ${total}`
+                : `<strong>${missed}</strong> missed · ${correct}/${total} counted`)
+            : `<strong>${pctText(accuracy)}</strong> · ${correct}/${total}`;
+        return `
+            <div class="acc-row" ${attrs}>
+                <div class="acc-row-top">
+                    <span class="acc-name">${esc(name)}</span>
+                    <span class="acc-val">${right}</span>
+                </div>
+                <div class="acc-track">
+                    <div class="acc-fill" data-w="${width.toFixed(1)}" style="width:0;background:${color}"></div>
+                </div>
+            </div>`;
+    }
+    /* Fills animate from zero on the next frame, matching the bar charts. */
+    function animateAccFills(rootEl) {
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+            rootEl.querySelectorAll('.acc-fill[data-w]').forEach(el => {
+                el.style.width = el.getAttribute('data-w') + '%';
+            });
+        }));
+    }
 
     function filterTests(tests, filter) {
         const now   = new Date();
@@ -749,9 +818,13 @@
         return idx % 5 === 0 || idx === total - 1;
     }
 
+    /* Only full tests are plotted: a section-only test scores out of 800, so
+       mixing it into a 1600 trend would read as a sudden collapse rather than
+       a shorter test. They still count everywhere misses are analysed. */
     function buildChartData(tests, filter) {
         const now    = new Date();
-        const sorted = [...tests].sort((a, b) => new Date(a.date) - new Date(b.date));
+        const sorted = tests.filter(t => t.isFullTest !== false)
+                            .sort((a, b) => new Date(a.date) - new Date(b.date));
         const slice  = sorted.slice(-30);
 
         if (slice.length === 0) {
@@ -765,7 +838,7 @@
         const bars = slice.map(t => ({
             label: fmtDateShort(t.date),
             value: t.rwScore + t.mathScore,
-            tip:   `${fmtDateShort(t.date)}: ${t.rwScore + t.mathScore} / 1600`,
+            tip:   `${t.testName || fmtDateShort(t.date)}: ${t.scoresEstimated ? '~' : ''}${t.rwScore + t.mathScore} / 1600`,
             id:    t.id,
         }));
 
@@ -859,7 +932,7 @@
         } : null).filter(Boolean);
         if (pts.length === 0) return '';
         const line = pts.length > 1
-            ? `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;z-index:2;"><polyline points="${pts.map(p => `${p.x},${p.y}`).join(' ')}" fill="none" stroke="#4A8C6E" stroke-width="1.5" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>`
+            ? `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;z-index:2;"><polyline points="${pts.map(p => `${p.x},${p.y}`).join(' ')}" fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/><polyline points="${pts.map(p => `${p.x},${p.y}`).join(' ')}" fill="none" stroke="#1e1e1e" stroke-width="1.5" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>`
             : '';
         const dots = pts.map(p =>
             `<div class="score-dot" style="left:${p.x}%;top:${p.y}%;" data-tip="${p.score}/10 · ${p.label}"></div>`
@@ -867,56 +940,32 @@
         return line + dots;
     }
 
-    const RW_COLOR   = '#003566';
-    const MATH_COLOR = '#9e2a2b';
+    /* Chart palette — Urban Systems technology ramp (see the brand guidelines).
+       R&W and Math both read as "blue", distinguished by depth rather than hue,
+       which keeps the orange attention accent unambiguous everywhere it appears. */
+    /* The only chromatic values in the app: one per data series, so a
+       Reading & Writing bar is never mistaken for a Math bar. Everything else
+       on this page is white, #1e1e1e, or a neutral tint between them. */
+    const RW_COLOR   = '#669bbc';
+    const MATH_COLOR = '#c1121f';
+    const WARN_COLOR = '#1e1e1e';
     const SEC_COLORS = { rw1: RW_COLOR, rw2: RW_COLOR, m1: MATH_COLOR, m2: MATH_COLOR };
 
-    /* ── Skill trend ── */
-    const SAT_SKILLS = {
-        "Reading and Writing": {
-            "Information and Ideas": [
-                "Central Ideas and Details", "Inferences",
-                "Command of Evidence (Textual)", "Command of Evidence (Quantitative)"
-            ],
-            "Craft and Structure": [
-                "Words in Context", "Text Structure and Purpose", "Cross-Text Connections"
-            ],
-            "Expression of Ideas": ["Rhetorical Synthesis", "Transitions"],
-            "Standard English Conventions": ["Boundaries", "Form, Structure, and Sense"]
-        },
-        "Math": {
-            "Algebra": [
-                "Linear Equations in One Variable", "Linear Equations in Two Variables",
-                "Linear Inequalities in One or Two Variables",
-                "Systems of Linear Equations in Two Variables"
-            ],
-            "Advanced Math": [
-                "Equivalent Expressions",
-                "Nonlinear Equations in One Variable and Systems",
-                "Nonlinear Functions"
-            ],
-            "Problem-Solving and Data Analysis": [
-                "Percentages", "Ratios, Rates, and Proportional Relationships",
-                "Two-Variable Data (Scatterplots)", "One-Variable Data (Distributions and Measures)",
-                "Probability and Conditional Probability",
-                "Inference from Sample Statistics", "Evaluating Statistical Claims"
-            ],
-            "Geometry and Trigonometry": [
-                "Area and Volume", "Lines, Angles, and Triangles",
-                "Right Triangles and Trigonometry", "Circles"
-            ]
-        }
-    };
+    const T = SAT_TAXONOMY;
 
-    const ALL_SKILLS = Object.values(SAT_SKILLS).flatMap(domains => Object.values(domains).flat());
+    /* Skills come from the shared taxonomy so this page, the manual entry form
+       and the AI import pipeline all group on the same canonical keys. */
+    const ALL_SKILLS = T.SKILLS;
 
     let skillTrendSelected = null;
 
-    function skillSectionGroup(skill) {
-        for (const skills of Object.values(SAT_SKILLS['Reading and Writing'])) {
-            if (skills.includes(skill)) return 'rw';
-        }
-        return 'math';
+    function skillSectionGroup(skillKey) {
+        const e = T.skill(skillKey);
+        return e ? e.section : 'rw';
+    }
+    function skillLabelOf(skillKey) {
+        const e = T.skill(skillKey);
+        return e ? e.label : skillKey;
     }
 
     /*
@@ -927,20 +976,27 @@
      * improving; positive = worsening). A flat first-half/second-half split
      * let one bad test in the middle keep dragging the verdict down even
      * after a clean recent test — this fixes that.
+     *
+     * Misses are the signal rather than accuracy, because a manually entered
+     * test only classifies the questions it got wrong: it knows its misses
+     * exactly but not how many of that skill it attempted. Accuracy is
+     * reported alongside, from the tests that do know their denominator.
      */
-    function computeSkillTrend(tests, skill) {
-        const sorted = [...tests].sort((a, b) => new Date(a.date) - new Date(b.date));
-        const slice  = sorted.slice(-30);
-        const points = slice.map(t => ({
-            label: fmtDateShort(t.date),
-            value: (t.missedQuestions || []).filter(q => q.skill === skill).length,
+    function computeSkillTrend(tests, skillKey) {
+        const slice  = SAT_TESTS.skillTrend(tests, skillKey).slice(-30);
+        const points = slice.map(p => ({
+            label: fmtDateShort(p.date),
+            value: p.missed,
+            attempted: p.attempted,
+            correct: p.correct,
+            accuracy: p.accuracy
         }));
         const values = points.map(p => p.value);
 
         let pastAvg = null, weighted = null, delta = null;
         if (values.length >= 2) {
-            const latest       = values[values.length - 1];
-            const priorValues  = values.slice(0, -1);
+            const latest      = values[values.length - 1];
+            const priorValues = values.slice(0, -1);
             pastAvg  = priorValues.reduce((a, b) => a + b, 0) / priorValues.length;
             weighted = 0.4 * latest + 0.6 * pastAvg;
             delta    = weighted - pastAvg;
@@ -952,11 +1008,13 @@
     function populateSkillTrendSelect() {
         const sel = document.getElementById('skillTrendSelect');
         let html = '';
-        for (const [sName, domains] of Object.entries(SAT_SKILLS)) {
-            const s = sName === 'Reading and Writing' ? 'R&W' : 'Math';
-            for (const [domain, skills] of Object.entries(domains)) {
-                html += `<optgroup label="${s} · ${domain}">`;
-                skills.forEach(sk => { html += `<option value="${sk}">${sk}</option>`; });
+        for (const section of ['rw', 'math']) {
+            const short = section === 'rw' ? 'R&W' : 'Math';
+            for (const domain of T.domainsOf(section)) {
+                html += `<optgroup label="${short} · ${esc(domain)}">`;
+                T.skillsOf(section, domain).forEach(sk => {
+                    html += `<option value="${esc(sk.key)}">${esc(sk.label)}</option>`;
+                });
                 html += `</optgroup>`;
             }
         }
@@ -968,11 +1026,11 @@
     function renderSkillTrend() {
         const sel = document.getElementById('skillTrendSelect');
         skillTrendSelected = sel.value;
-        const skill   = skillTrendSelected;
-        const chartEl = document.getElementById('skillTrendChart');
-        const metaEl  = document.getElementById('skillTrendMeta');
+        const skillKey = skillTrendSelected;
+        const chartEl  = document.getElementById('skillTrendChart');
+        const metaEl   = document.getElementById('skillTrendMeta');
 
-        const trend  = computeSkillTrend(lastFiltered, skill);
+        const trend  = computeSkillTrend(lastFiltered, skillKey);
         const points = trend.points;
 
         if (points.length === 0) {
@@ -981,15 +1039,16 @@
             return;
         }
 
-        const color    = skillSectionGroup(skill) === 'rw' ? RW_COLOR : MATH_COLOR;
+        const color    = skillSectionGroup(skillKey) === 'rw' ? RW_COLOR : MATH_COLOR;
         const maxVal   = Math.max(...points.map(p => p.value), 1);
         const barsHTML = points.map(p => {
             const isMiss = p.value > 0;
             const pct    = isMiss ? Math.max((p.value / maxVal) * 100, 20) : 6;
             const bg     = isMiss ? color : 'var(--gray)';
             const op     = isMiss ? '1' : '0.4';
-            const tip    = `${p.label}: ${p.value} missed`;
-            return `<div class="bar-item"><div class="bar-inner has-data" data-h="${pct.toFixed(1)}" data-tip="${tip}" style="height:0;background:${bg};opacity:${op}"></div></div>`;
+            const rate   = p.attempted ? ` of ${p.attempted} seen` : '';
+            const tip    = `${p.label}: ${p.value} missed${rate}`;
+            return `<div class="bar-item"><div class="bar-inner has-data" data-h="${pct.toFixed(1)}" data-tip="${esc(tip)}" style="height:0;background:${bg};opacity:${op}"></div></div>`;
         }).join('');
 
         const labelsHTML = points.map((p, i) =>
@@ -1019,6 +1078,13 @@
         const cleanTests  = points.length - missedTests;
         const missRate    = Math.round((missedTests / points.length) * 100);
 
+        const rated  = points.filter(p => p.attempted);
+        const seen   = rated.reduce((s, p) => s + p.attempted, 0);
+        const got    = rated.reduce((s, p) => s + p.correct, 0);
+        const accHTML = seen
+            ? `&nbsp;·&nbsp; <span class="trend-stat-val">${got}/${seen}</span> correct where counted`
+            : '';
+
         const EPS = 0.2;
         let trendHTML = '<span></span>';
         if (trend.delta != null) {
@@ -1028,7 +1094,7 @@
         }
 
         metaEl.innerHTML = `
-            <span>Missed <span class="trend-stat-val">${totalMisses}×</span> across <span class="trend-stat-val">${missedTests}</span> of <span class="trend-stat-val">${points.length}</span> tests (${missRate}%) &nbsp;·&nbsp; ${cleanTests} clean</span>
+            <span>Missed <span class="trend-stat-val">${totalMisses}×</span> across <span class="trend-stat-val">${missedTests}</span> of <span class="trend-stat-val">${points.length}</span> tests (${missRate}%) &nbsp;·&nbsp; ${cleanTests} clean${accHTML}</span>
             ${trendHTML}`;
     }
 
@@ -1042,11 +1108,11 @@
         const upEl   = document.getElementById('skillProgressUp');
         const downEl = document.getElementById('skillProgressDown');
 
-        const entries = ALL_SKILLS.map(skill => {
-            const t = computeSkillTrend(tests, skill);
+        const entries = ALL_SKILLS.map(sk => {
+            const t = computeSkillTrend(tests, sk.key);
             const totalMisses = t.values.reduce((a, b) => a + b, 0);
             if (t.delta == null || totalMisses === 0) return null;
-            return { skill, delta: t.delta };
+            return { key: sk.key, label: sk.label, delta: t.delta };
         }).filter(Boolean).filter(e => Math.abs(e.delta) > 0.001);
 
         const improving = entries.filter(e => e.delta < 0).sort((a, b) => a.delta - b.delta).slice(0, 5);
@@ -1056,64 +1122,50 @@
             if (list.length === 0) return '<p class="panel-empty">Not enough data yet</p>';
             const cls   = kind === 'improving' ? 'skill-progress-delta--up' : 'skill-progress-delta--down';
             const arrow = kind === 'improving' ? '↓' : '↑';
-            return list.map(e => {
-                const esc = e.skill.replace(/"/g, '&quot;');
-                return `<div class="skill-progress-row" data-skill="${esc}" onclick="showSkillDetail(this.dataset.skill)" onmouseenter="hoverSkill(this.dataset.skill)" onmouseleave="hideHoverPreview()">
-                    <span class="skill-progress-name">${e.skill}</span>
+            return list.map(e =>
+                `<div class="skill-progress-row" data-skill="${esc(e.key)}" onclick="showSkillDetail(this.dataset.skill)" onmouseenter="hoverSkill(this.dataset.skill)" onmouseleave="hideHoverPreview()">
+                    <span class="skill-progress-name">${esc(e.label)}</span>
                     <span class="skill-progress-delta ${cls}">${arrow} ${Math.abs(e.delta).toFixed(1)}</span>
-                </div>`;
-            }).join('');
+                </div>`).join('');
         }
 
         upEl.innerHTML   = rowsHTML(improving, 'improving');
         downEl.innerHTML = rowsHTML(worsening, 'worsening');
     }
 
+    /* Most missed skills, now reported as a rate wherever a rate is knowable.
+       Ordering is still by miss count — that is what you actually want to work
+       on — but the bar length shows accuracy, so a skill missed 3 times out of
+       10 attempts no longer looks worse than one missed 2 times out of 2. */
     function renderBreakdown(tests) {
         const listEl  = document.getElementById('breakdownList');
         const titleEl = document.getElementById('breakdownTitle');
 
-        const counts    = {};
-        const skillSecs = {};
-        tests.forEach(t => {
-            (t.missedQuestions || []).forEach(q => {
-                if (!q.skill) return;
-                counts[q.skill] = (counts[q.skill] || 0) + 1;
-                if (!skillSecs[q.skill]) skillSecs[q.skill] = { rw: 0, math: 0 };
-                if (q.section === 'rw1' || q.section === 'rw2') skillSecs[q.skill].rw++;
-                else skillSecs[q.skill].math++;
-            });
-        });
+        const stats = SAT_TESTS.skillStats(tests).filter(e => e.missed > 0).slice(0, 10);
 
-        const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 10);
-
-        if (entries.length === 0) {
+        if (stats.length === 0) {
             titleEl.textContent = 'Most missed skills';
             listEl.innerHTML = '<p class="breakdown-empty">No missed questions logged yet</p>';
             return;
         }
 
-        const total = entries.reduce((s, [, c]) => s + c, 0);
-        titleEl.textContent = `Most missed skills · ${total} total`;
+        const totalMissed = stats.reduce((s, e) => s + e.missed, 0);
+        titleEl.textContent = `Most missed skills · ${totalMissed} total`;
 
-        const segsHTML = entries.map(([skill, count]) => {
-            const pct   = (count / total * 100).toFixed(2);
-            const sc    = skillSecs[skill] || { rw: 0, math: 0 };
-            const color = sc.rw >= sc.math ? RW_COLOR : MATH_COLOR;
-            const esc   = skill.replace(/"/g, '&quot;');
-            return `<div class="stacked-seg" style="background:${color};width:${pct}%;cursor:pointer;" data-skill="${esc}" onclick="showSkillDetail(this.dataset.skill)" onmouseenter="hoverSkill(this.dataset.skill)" onmouseleave="hideHoverPreview()"></div>`;
-        }).join('');
-
-        const legendHTML = entries.map(([skill, count]) => {
-            const sc    = skillSecs[skill] || { rw: 0, math: 0 };
-            const color = sc.rw >= sc.math ? RW_COLOR : MATH_COLOR;
-            const esc   = skill.replace(/"/g, '&quot;');
-            return `<span class="stacked-legend-item" style="cursor:pointer;" data-skill="${esc}" onclick="showSkillDetail(this.dataset.skill)" onmouseenter="hoverSkill(this.dataset.skill)" onmouseleave="hideHoverPreview()"><span class="stacked-legend-pip" style="background:${color}"></span>${skill} <span class="stacked-legend-count">${count}×</span></span>`;
-        }).join('');
-
-        listEl.innerHTML = `
-            <div class="stacked-prop-bar">${segsHTML}</div>
-            <div class="stacked-legend">${legendHTML}</div>`;
+        listEl.innerHTML = stats.map(e => accRowHTML({
+            name: e.label,
+            accuracy: e.accuracy,
+            correct: e.correct,
+            total: e.attempted,
+            missed: e.missed,
+            lead: 'missed',
+            color: e.section === 'rw' ? RW_COLOR : MATH_COLOR,
+            attrs: `data-skill="${esc(e.key)}" style="cursor:pointer"
+                    onclick="showSkillDetail(this.dataset.skill)"
+                    onmouseenter="hoverSkill(this.dataset.skill)"
+                    onmouseleave="hideHoverPreview()"`
+        })).join('');
+        animateAccFills(listEl);
     }
 
     function renderSectionBreakdown(tests) {
@@ -1164,34 +1216,83 @@
         panels.forEach(({ key, id }) => {
             const el    = document.getElementById(id);
             const color = key.startsWith('rw') ? RW_COLOR : MATH_COLOR;
-            const counts = {};
-            tests.forEach(t => {
-                (t.missedQuestions || []).forEach(q => {
-                    if (q.section === key && q.skill)
-                        counts[q.skill] = (counts[q.skill] || 0) + 1;
-                });
-            });
+            const stats = SAT_TESTS.skillStats(tests, { module: key })
+                .filter(e => e.missed > 0).slice(0, 8);
 
-            const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 8);
-            if (entries.length === 0) { el.innerHTML = '<p class="panel-empty">No data</p>'; return; }
+            if (stats.length === 0) { el.innerHTML = '<p class="panel-empty">No data</p>'; return; }
 
-            const total = entries.reduce((s, [, c]) => s + c, 0);
+            const total = stats.reduce((s, e) => s + e.missed, 0);
 
-            const segsHTML = entries.map(([skill, count]) => {
-                const pct = (count / total * 100).toFixed(2);
-                const esc = skill.replace(/"/g, '&quot;');
-                return `<div class="stacked-seg" style="background:${color};width:${pct}%;cursor:pointer;" data-skill="${esc}" data-sec-key="${key}" onclick="showSkillDetail(this.dataset.skill, this.dataset.secKey)" onmouseenter="hoverSkill(this.dataset.skill, this.dataset.secKey)" onmouseleave="hideHoverPreview()"></div>`;
+            const segsHTML = stats.map(e => {
+                const pct = (e.missed / total * 100).toFixed(2);
+                return `<div class="stacked-seg" style="background:${color};width:${pct}%;cursor:pointer;" data-skill="${esc(e.key)}" data-sec-key="${key}" onclick="showSkillDetail(this.dataset.skill, this.dataset.secKey)" onmouseenter="hoverSkill(this.dataset.skill, this.dataset.secKey)" onmouseleave="hideHoverPreview()"></div>`;
             }).join('');
 
-            const legendHTML = entries.map(([skill, count]) => {
-                const esc = skill.replace(/"/g, '&quot;');
-                return `<span class="stacked-legend-item" style="cursor:pointer;" data-skill="${esc}" data-sec-key="${key}" onclick="showSkillDetail(this.dataset.skill, this.dataset.secKey)" onmouseenter="hoverSkill(this.dataset.skill, this.dataset.secKey)" onmouseleave="hideHoverPreview()"><span class="stacked-legend-pip" style="background:${color}"></span>${skill} <span class="stacked-legend-count">${count}×</span></span>`;
+            const legendHTML = stats.map(e => {
+                // Only a rate that covers every miss in this row; these legend
+                // chips have no room to qualify a partial one (see accRowHTML).
+                const rate = (e.accuracy != null && e.missed === e.attempted - e.correct)
+                    ? ` · ${pctText(e.accuracy)}` : '';
+                return `<span class="stacked-legend-item" style="cursor:pointer;" data-skill="${esc(e.key)}" data-sec-key="${key}" onclick="showSkillDetail(this.dataset.skill, this.dataset.secKey)" onmouseenter="hoverSkill(this.dataset.skill, this.dataset.secKey)" onmouseleave="hideHoverPreview()"><span class="stacked-legend-pip" style="background:${color}"></span>${esc(e.label)} <span class="stacked-legend-count">${e.missed}×${rate}</span></span>`;
             }).join('');
 
             el.innerHTML = `
                 <div class="stacked-prop-bar">${segsHTML}</div>
                 <div class="stacked-legend">${legendHTML}</div>`;
         });
+    }
+
+    /* ── New panels, all driven by the per-test JSON records ── */
+
+    function renderDomainAccuracy(tests) {
+        const el = document.getElementById('domainAccList');
+        const stats = SAT_TESTS.domainStats(tests);
+        if (!stats.length) { el.innerHTML = '<p class="panel-empty">No question-level data yet</p>'; return; }
+        el.innerHTML = stats.map(e => accRowHTML({
+            name: e.key,
+            accuracy: e.accuracy,
+            correct: e.correct,
+            total: e.total,
+            missed: e.missed,
+            color: T.sectionOfDomain(e.key) === 'math' ? MATH_COLOR : RW_COLOR
+        })).join('');
+        animateAccFills(el);
+    }
+
+    function renderDifficultyAccuracy(tests) {
+        const el = document.getElementById('difficultyAccList');
+        const stats = SAT_TESTS.difficultyStats(tests);
+        if (!stats.length) { el.innerHTML = '<p class="panel-empty">No question-level data yet</p>'; return; }
+        /* Darker as it gets harder. Difficulty is not a data series, so it
+           reads as a neutral ramp between the two brand colors. */
+        const COLORS = { Easy: '#9a9a9a', Medium: '#6b6b6b', Hard: '#1e1e1e' };
+        el.innerHTML = stats.map(e => accRowHTML({
+            name: e.key,
+            accuracy: e.accuracy,
+            correct: e.correct,
+            total: e.total,
+            missed: e.missed,
+            color: COLORS[e.key] || RW_COLOR
+        })).join('');
+        animateAccFills(el);
+    }
+
+    function renderErrorPatterns(tests) {
+        const el = document.getElementById('errorPatternList');
+        const stats = SAT_TESTS.errorPatternStats(tests).slice(0, 12);
+        if (!stats.length) { el.innerHTML = '<p class="panel-empty">No error patterns logged yet</p>'; return; }
+        const max = stats[0].count;
+        el.innerHTML = stats.map(e => `
+            <div class="acc-row">
+                <div class="acc-row-top">
+                    <span class="acc-name">${esc(e.label)}</span>
+                    <span class="acc-val"><strong>${e.count}×</strong></span>
+                </div>
+                <div class="acc-track">
+                    <div class="acc-fill" data-w="${(e.count / max * 100).toFixed(1)}" style="width:0;background:${WARN_COLOR}"></div>
+                </div>
+            </div>`).join('');
+        animateAccFills(el);
     }
 
     function renderTimeLeftChart(tests) {
@@ -1311,23 +1412,41 @@
     }
 
     async function render() {
-        const [rawTests, allSessions] = await Promise.all([SAT_STORAGE.getTests(), SAT_STORAGE.getSessions()]);
-        const all      = rawTests.sort((a, b) => new Date(b.date) - new Date(a.date));
+        const [allTests, allSessions] = await Promise.all([
+            SAT_TESTS.getSummaries(), SAT_STORAGE.getSessions()
+        ]);
+        const all      = allTests.sort((a, b) => new Date(b.date) - new Date(a.date));
         const filtered = filterTests(all, currentFilter);
         lastFiltered   = filtered;
 
-        if (filtered.length > 0) {
-            const best    = filtered.reduce((b, t) => (t.rwScore + t.mathScore) > (b.rwScore + b.mathScore) ? t : b);
-            const bestTot = best.rwScore + best.mathScore;
-            const avgTot  = Math.round(filtered.reduce((s, t) => s + t.rwScore + t.mathScore, 0) / filtered.length);
+        // Best and average describe full tests only — the same reason
+        // buildChartData filters them. Partial tests still show in the list.
+        const full = filtered.filter(t => t.isFullTest !== false);
 
-            document.getElementById('bestValue').textContent = bestTot;
+        if (full.length > 0) {
+            const best    = full.reduce((b, t) => (t.rwScore + t.mathScore) > (b.rwScore + b.mathScore) ? t : b);
+            const bestTot = best.rwScore + best.mathScore;
+            const avgTot  = Math.round(full.reduce((s, t) => s + t.rwScore + t.mathScore, 0) / full.length);
+            const anyEst  = full.some(t => t.scoresEstimated);
+            const partial = filtered.length - full.length;
+
+            document.getElementById('bestValue').textContent = `${best.scoresEstimated ? '~' : ''}${bestTot}`;
             document.getElementById('bestUnit').textContent  = '/ 1600';
-            document.getElementById('bestMeta').textContent  = fmtDate(best.date);
+            document.getElementById('bestMeta').textContent  =
+                `${best.testName || 'Practice test'} · ${fmtDate(best.date)}`;
 
             document.getElementById('countValue').textContent = filtered.length;
             document.getElementById('countUnit').textContent  = filtered.length === 1 ? 'test' : 'tests';
-            document.getElementById('avgMeta').textContent    = `avg ${avgTot} / 1600`;
+            document.getElementById('avgMeta').textContent    =
+                `avg ${anyEst ? '~' : ''}${avgTot} / 1600` +
+                (partial ? ` · ${partial} section-only excluded` : '');
+        } else if (filtered.length > 0) {
+            document.getElementById('bestValue').textContent  = '—';
+            document.getElementById('bestUnit').textContent   = '';
+            document.getElementById('bestMeta').textContent   = 'No full tests in range';
+            document.getElementById('countValue').textContent = filtered.length;
+            document.getElementById('countUnit').textContent  = filtered.length === 1 ? 'test' : 'tests';
+            document.getElementById('avgMeta').textContent    = 'section-only';
         } else {
             document.getElementById('bestValue').textContent  = '—';
             document.getElementById('bestUnit').textContent   = '';
@@ -1342,6 +1461,9 @@
         renderChart(filtered, currentFilter, allSessions);
         renderTimeLeftChart(filtered);
         renderBreakdown(filtered);
+        renderDomainAccuracy(filtered);
+        renderDifficultyAccuracy(filtered);
+        renderErrorPatterns(filtered);
         renderSkillProgress(filtered);
         renderSkillTrend();
 
@@ -1370,30 +1492,30 @@
 
         let html = `
             <div class="session-list-header">
-                <span class="list-col-label">Date</span>
+                <span class="list-col-label">Test</span>
                 <span class="list-col-label right">Score</span>
                 <span></span>
             </div>`;
 
         filtered.forEach(t => {
-            const total     = t.rwScore + t.mathScore;
-            const questions = t.missedQuestions || [];
+            const sl     = SAT_TESTS.scoreLabel(t);
+            const missed = (t.missedQuestions || []).length;
 
-            const missedSummary = questions.length === 0
-                ? '<span class="no-missed-inline">No questions missed</span>'
-                : `<span class="no-missed-inline">${questions.length} question${questions.length !== 1 ? 's' : ''} missed</span>`;
+            const summary = t.hasDetail && t.totalQuestions
+                ? `${t.correctCount} of ${t.totalQuestions} correct · ${pctText(t.accuracy)}`
+                : `${missed} question${missed !== 1 ? 's' : ''} missed`;
 
             html += `
-                <div class="test-row" id="row-${t.id}" onmouseenter="hoverTest('${t.id}')" onmouseleave="hideHoverPreview()">
-                    <div class="test-row-main" onclick="showTestDetail('${t.id}')">
-                        <div class="test-date">${fmtDate(t.date)}</div>
-                        <div class="test-missed-wrap">${missedSummary}</div>
+                <div class="test-row" id="row-${esc(t.id)}" onmouseenter="hoverTest('${esc(t.id)}')" onmouseleave="hideHoverPreview()">
+                    <div class="test-row-main" onclick="showTestDetail('${esc(t.id)}')">
+                        <div class="test-date">${esc(t.testName || 'Practice test')}</div>
+                        <div class="test-missed-wrap"><span class="no-missed-inline">${fmtDate(t.date)} · ${summary}</span></div>
                     </div>
-                    <div class="test-score-col" onclick="showTestDetail('${t.id}')" style="cursor:pointer">
-                        <div class="test-score-main">${total} <span style="color:var(--gray-text);font-size:0.75rem;font-weight:400">/ 1600</span></div>
-                        <div class="test-score-sub">R&amp;W ${t.rwScore} &nbsp;·&nbsp; Math ${t.mathScore}</div>
+                    <div class="test-score-col" onclick="showTestDetail('${esc(t.id)}')" style="cursor:pointer">
+                        <div class="test-score-main">${sl.value} <span style="color:var(--gray-text);font-size:0.75rem;font-weight:400">${sl.denom}</span></div>
+                        <div class="test-score-sub">${sl.note ? esc(sl.note) : `R&amp;W ${t.rwScore} &nbsp;·&nbsp; Math ${t.mathScore}`}</div>
                     </div>
-                    <button class="delete-btn" onclick="deleteTest('${t.id}')" title="Delete">
+                    <button class="delete-btn" onclick="deleteTest('${esc(t.id)}')" title="Delete">
                         <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
                             <line x1="1" y1="1" x2="11" y2="11"/><line x1="11" y1="1" x2="1" y2="11"/>
                         </svg>
@@ -1414,8 +1536,7 @@
 
     async function deleteTest(id) {
         if (!confirm('Remove this test from your history?')) return;
-        const tests = (await SAT_STORAGE.getTests()).filter(t => t.id !== id);
-        await SAT_STORAGE.saveTests(tests);
+        await SAT_TESTS.remove(id);
         render();
         showToast('Test removed');
     }
@@ -1572,6 +1693,7 @@
         }
     });
     window.addEventListener('sat:synced', () => render());
+    window.addEventListener('sat:testsynced', () => render());
 
     /* ── Hover Preview ── */
     let hpX = 0, hpY = 0;
@@ -1607,74 +1729,74 @@
     function hoverTest(testId) {
         const t = lastFiltered.find(x => x.id === testId);
         if (!t) return;
-        const total  = t.rwScore + t.mathScore;
+        const sl     = SAT_TESTS.scoreLabel(t);
         const missed = (t.missedQuestions || []).length;
         const tl = t.timeLeft || {};
-        const tlParts = [
-            tl.rw1 != null ? `RW S1 ${fmtTimeLeft(tl.rw1)}` : null,
-            tl.rw2 != null ? `RW S2 ${fmtTimeLeft(tl.rw2)}` : null,
-            tl.m1  != null ? `M S1 ${fmtTimeLeft(tl.m1)}`   : null,
-            tl.m2  != null ? `M S2 ${fmtTimeLeft(tl.m2)}`   : null,
-        ].filter(Boolean);
+        const tlParts = T.MODULES
+            .filter(m => tl[m.slug] != null)
+            .map(m => `${m.short} ${fmtTimeLeft(tl[m.slug])}`);
+
+        const accRow = t.hasDetail && t.accuracy != null
+            ? `<div class="hp-row"><span class="hp-row-name">Accuracy</span><span class="hp-row-val">${t.correctCount}/${t.totalQuestions} · ${pctText(t.accuracy)}</span></div>`
+            : '';
+
         showHoverPreview(`
-            <div class="hp-eyebrow">${fmtDate(t.date)}</div>
-            <div class="hp-hero">${total} <span class="hp-hero-denom">/ 1600</span></div>
-            <div class="hp-sub">R&amp;W ${t.rwScore} · Math ${t.mathScore}</div>
-            ${missed > 0 || tlParts.length > 0 ? '<hr class="hp-divider">' : ''}
+            <div class="hp-eyebrow">${esc(t.testName || 'Practice test')} · ${fmtDate(t.date)}</div>
+            <div class="hp-hero">${sl.value} <span class="hp-hero-denom">${sl.denom}</span></div>
+            <div class="hp-sub">${sl.note ? esc(sl.note) + ' · ' : ''}R&amp;W ${t.rwScore} · Math ${t.mathScore}${t.scoresEstimated ? ' · estimated' : ''}</div>
+            ${missed > 0 || tlParts.length > 0 || accRow ? '<hr class="hp-divider">' : ''}
+            ${accRow}
             ${missed > 0 ? `<div class="hp-row"><span class="hp-row-name">Missed</span><span class="hp-row-val">${missed} question${missed !== 1 ? 's' : ''}</span></div>` : ''}
             ${tlParts.length > 0 ? `<div class="hp-meta">${tlParts.join(' · ')}</div>` : ''}
         `);
     }
 
-    function hoverSkill(skill, section) {
-        const secCounts = { rw1: 0, rw2: 0, m1: 0, m2: 0 };
-        const testSet   = new Set();
-        lastFiltered.forEach(t => {
-            let hit = false;
-            (t.missedQuestions || []).forEach(q => {
-                if (q.skill !== skill) return;
-                if (section && q.section !== section) return;
-                secCounts[q.section]++;
-                hit = true;
-            });
-            if (hit) testSet.add(t.id);
-        });
-        const total   = Object.values(secCounts).reduce((a, b) => a + b, 0);
+    function hoverSkill(skillKey, section) {
+        const label = skillLabelOf(skillKey);
+        const scoped = section ? { module: section } : {};
+        const stat = SAT_TESTS.skillStats(lastFiltered, scoped).find(e => e.key === skillKey);
+        if (!stat) return;
+
         const secRows = !section
-            ? Object.entries(secCounts).filter(([, c]) => c > 0)
-                .map(([k, c]) => `<div class="hp-row"><span class="hp-row-name">${SEC_LABELS[k]}</span><span class="hp-row-val">${c}×</span></div>`).join('')
+            ? T.MODULES.map(m => {
+                const e = SAT_TESTS.skillStats(lastFiltered, { module: m.slug }).find(x => x.key === skillKey);
+                return e && e.missed ? `<div class="hp-row"><span class="hp-row-name">${esc(m.label)}</span><span class="hp-row-val">${e.missed}×</span></div>` : '';
+              }).join('')
             : '';
+
+        const rate = stat.accuracy == null ? '' :
+            `<div class="hp-row"><span class="hp-row-name">Accuracy</span><span class="hp-row-val">${pctText(stat.accuracy)} (${stat.correct}/${stat.attempted})</span></div>`;
+
         showHoverPreview(`
-            <div class="hp-eyebrow">${section ? SEC_LABELS[section] : 'All Sections'}</div>
-            <div class="hp-hero">${total}<span class="hp-hero-denom" style="font-size:0.9375rem">×</span></div>
-            <div class="hp-sub">${skill}</div>
-            ${secRows ? `<hr class="hp-divider">${secRows}` : ''}
-            <div class="hp-meta">${testSet.size} test${testSet.size !== 1 ? 's' : ''}</div>
+            <div class="hp-eyebrow">${section ? esc(SEC_LABELS[section]) : 'All Sections'}</div>
+            <div class="hp-hero">${stat.missed}<span class="hp-hero-denom" style="font-size:0.9375rem">× missed</span></div>
+            <div class="hp-sub">${esc(label)}</div>
+            ${secRows || rate ? `<hr class="hp-divider">${secRows}${rate}` : ''}
+            <div class="hp-meta">${stat.tests} test${stat.tests !== 1 ? 's' : ''}${stat.ratedTests ? ` · ${stat.ratedTests} with full detail` : ''}</div>
         `);
     }
 
     function hoverSection(secKey) {
-        const skillCounts = {};
-        let total = 0, testCount = 0;
-        lastFiltered.forEach(t => {
-            let hit = false;
-            (t.missedQuestions || []).forEach(q => {
-                if (q.section !== secKey) return;
-                if (q.skill) skillCounts[q.skill] = (skillCounts[q.skill] || 0) + 1;
-                total++;
-                hit = true;
-            });
-            if (hit) testCount++;
-        });
-        const top3 = Object.entries(skillCounts).sort((a, b) => b[1] - a[1]).slice(0, 3);
-        const rows = top3.map(([s, c]) =>
-            `<div class="hp-row"><span class="hp-row-name">${s}</span><span class="hp-row-val">${c}×</span></div>`
+        const stats = SAT_TESTS.skillStats(lastFiltered, { module: secKey })
+            .filter(e => e.missed > 0);
+        const total = stats.reduce((s, e) => s + e.missed, 0);
+        const mod   = SAT_TESTS.moduleStats(lastFiltered).find(m => m.key === secKey);
+        const testCount = lastFiltered.filter(t =>
+            (t.missedQuestions || []).some(q => q.section === secKey)).length;
+
+        const rows = stats.slice(0, 3).map(e =>
+            `<div class="hp-row"><span class="hp-row-name">${esc(e.label)}</span><span class="hp-row-val">${e.missed}×</span></div>`
         ).join('');
+
+        const accRow = mod && mod.accuracy != null
+            ? `<div class="hp-row"><span class="hp-row-name">Accuracy</span><span class="hp-row-val">${pctText(mod.accuracy)} (${mod.correct}/${mod.total})</span></div>`
+            : '';
+
         showHoverPreview(`
-            <div class="hp-eyebrow">${SEC_LABELS[secKey]}</div>
+            <div class="hp-eyebrow">${esc(SEC_LABELS[secKey])}</div>
             <div class="hp-hero">${total}</div>
             <div class="hp-sub">total misses</div>
-            ${rows ? `<hr class="hp-divider">${rows}` : ''}
+            ${rows || accRow ? `<hr class="hp-divider">${rows}${accRow}` : ''}
             <div class="hp-meta">${testCount} test${testCount !== 1 ? 's' : ''}</div>
         `);
     }
@@ -1699,10 +1821,39 @@
     }
     document.addEventListener('keydown', e => { if (e.key === 'Escape') hideModal(); });
 
-    function showTestDetail(id) {
+    /* Question map: every question in the test, coloured by outcome, with the
+       skill and error pattern on hover. Reads the full JSON record, so it is
+       only as complete as the record — a legacy test knows its misses alone. */
+    function questionMapHTML(record) {
+        return T.MODULES.map(m => {
+            const qs = record.questions.filter(q => q.module_slug === m.slug);
+            if (!qs.length) return '';
+            const correct = qs.filter(q => q.is_correct).length;
+            const cells = qs.map(q => {
+                const bits = [
+                    `${m.short} Q${q.question_number}`,
+                    q.is_correct ? 'correct' : 'missed',
+                    q.skill || null,
+                    q.difficulty || null,
+                    q.error_pattern || null
+                ].filter(Boolean);
+                return `<div class="qcell ${q.is_correct ? 'correct' : 'missed'}" title="${esc(bits.join(' · '))}">${q.question_number}</div>`;
+            }).join('');
+            return `
+                <div class="qgrid-module">
+                    <div class="qgrid-head">
+                        <span class="qgrid-title">${esc(m.label)}</span>
+                        <span class="qgrid-count">${correct} / ${qs.length} correct</span>
+                    </div>
+                    <div class="qgrid">${cells}</div>
+                </div>`;
+        }).join('');
+    }
+
+    async function showTestDetail(id) {
         const t = lastFiltered.find(x => x.id === id);
         if (!t) return;
-        const total     = t.rwScore + t.mathScore;
+        const sl        = SAT_TESTS.scoreLabel(t);
         const questions = t.missedQuestions || [];
 
         const tagsHTML = questions.length === 0
@@ -1710,70 +1861,114 @@
             : buildMissedGroupsHTML(questions);
 
         const tl = t.timeLeft || {};
-        const tlEntries = [
-            { label: 'RW S1', val: tl.rw1 }, { label: 'RW S2', val: tl.rw2 },
-            { label: 'M S1',  val: tl.m1  }, { label: 'M S2',  val: tl.m2  },
-        ].filter(x => x.val != null);
+        const tlEntries = T.MODULES
+            .filter(m => tl[m.slug] != null)
+            .map(m => ({ label: m.short, val: tl[m.slug] }));
 
         const tlHTML = tlEntries.length === 0 ? '' : `
             <hr class="modal-divider">
             <p class="modal-sec-label">Time Left per Section</p>
             <div class="modal-2col">${tlEntries.map(x => `
                 <div class="modal-cell">
-                    <p class="modal-cell-label">${x.label}</p>
+                    <p class="modal-cell-label">${esc(x.label)}</p>
                     <p class="modal-cell-val large">${fmtTimeLeft(x.val)} left</p>
                 </div>`).join('')}</div>`;
 
+        const accHTML = t.hasDetail && t.accuracy != null ? `
+            <hr class="modal-divider">
+            <p class="modal-sec-label">Accuracy</p>
+            <div class="modal-2col">
+                <div class="modal-cell">
+                    <p class="modal-cell-label">Overall</p>
+                    <p class="modal-cell-val large">${t.correctCount}/${t.totalQuestions} · ${pctText(t.accuracy)}</p>
+                </div>
+                ${['Easy','Medium','Hard'].filter(d => (t.byDifficulty || {})[d]).map(d => {
+                    const v = t.byDifficulty[d];
+                    return `<div class="modal-cell">
+                        <p class="modal-cell-label">${d}</p>
+                        <p class="modal-cell-val large">${v.correct}/${v.total}</p>
+                    </div>`;
+                }).join('')}
+            </div>` : '';
+
+        const source = [t.sourceName, t.inputMode === 'auto' ? 'AI import' : t.inputMode === 'manual' ? 'Manual entry' : null]
+            .filter(Boolean).join(' · ');
+
         showModal(`
-            <p class="modal-eyebrow">Practice Test · ${fmtDate(t.date)}</p>
-            <div class="modal-hero">${total} <span class="modal-hero-denom">/ 1600</span></div>
-            <div class="modal-sub">R&amp;W ${t.rwScore} &nbsp;·&nbsp; Math ${t.mathScore}</div>
+            <p class="modal-eyebrow">${esc(t.testName || 'Practice test')} · ${fmtDate(t.date)}</p>
+            <div class="modal-hero">${sl.value} <span class="modal-hero-denom">${sl.denom}</span></div>
+            <div class="modal-sub">${sl.note ? esc(sl.note) + ' &nbsp;·&nbsp; ' : ''}R&amp;W ${t.rwScore} &nbsp;·&nbsp; Math ${t.mathScore}${t.scoresEstimated ? ' &nbsp;·&nbsp; estimated from raw score' : ''}</div>
+            ${source ? `<div class="modal-sub" style="margin-top:0.25rem;opacity:0.7">${esc(source)}</div>` : ''}
+            ${accHTML}
+            <div id="modalQuestionMap"></div>
             <hr class="modal-divider">
             <p class="modal-sec-label">Missed Questions (${questions.length})</p>
             ${tagsHTML}
             ${tlHTML}`);
+
+        // The record may still be downloading from Firestore, so the map fills in
+        // after the modal is already on screen rather than blocking it.
+        const record = await SAT_TESTS.getDetail(id);
+        const mapEl  = document.getElementById('modalQuestionMap');
+        if (!mapEl || !record || !record.app.has_detail) return;
+        mapEl.innerHTML = `
+            <hr class="modal-divider">
+            <p class="modal-sec-label">Question Map</p>
+            ${questionMapHTML(record)}
+            <div class="qgrid-legend">
+                <span class="qgl-item"><span class="qgl-pip" style="background:var(--off-white);box-shadow:inset 0 0 0 1.5px var(--gray)"></span>Correct</span>
+                <span class="qgl-item"><span class="qgl-pip" style="background:var(--dark)"></span>Missed</span>
+            </div>`;
     }
 
-    function showSkillDetail(skill, section) {
-        const secCounts = { rw1: 0, rw2: 0, m1: 0, m2: 0 };
-        const testHits  = [];
-        lastFiltered.forEach(t => {
-            let hit = false;
-            (t.missedQuestions || []).forEach(q => {
-                if (q.skill !== skill) return;
-                if (section && q.section !== section) return;
-                secCounts[q.section] = (secCounts[q.section] || 0) + 1;
-                hit = true;
-            });
-            if (hit) testHits.push(t);
-        });
-        const total = Object.values(secCounts).reduce((a, b) => a + b, 0);
+    function showSkillDetail(skillKey, section) {
+        const label  = skillLabelOf(skillKey);
+        const scoped = section ? { module: section } : {};
+        const stat   = SAT_TESTS.skillStats(lastFiltered, scoped).find(e => e.key === skillKey);
+        if (!stat) return;
 
-        const secGridHTML = Object.entries(secCounts)
-            .filter(([, c]) => c > 0)
-            .map(([k, c]) => `
-                <div class="modal-cell">
-                    <p class="modal-cell-label">${SEC_LABELS[k]}</p>
-                    <p class="modal-cell-val">${c}×</p>
-                </div>`).join('');
+        const perModule = T.MODULES.map(m => {
+            const e = SAT_TESTS.skillStats(lastFiltered, { module: m.slug }).find(x => x.key === skillKey);
+            return e && e.missed ? { label: m.label, missed: e.missed } : null;
+        }).filter(Boolean);
+
+        const testHits = lastFiltered.filter(t =>
+            (t.missedQuestions || []).some(q =>
+                q.skillKey === skillKey && (!section || q.section === section)));
+
+        const secGridHTML = perModule.map(x => `
+            <div class="modal-cell">
+                <p class="modal-cell-label">${esc(x.label)}</p>
+                <p class="modal-cell-val">${x.missed}×</p>
+            </div>`).join('');
 
         const testsHTML = testHits.length === 0
             ? '<p class="modal-none">—</p>'
             : testHits.map(t => `
                 <div class="modal-row">
-                    <span class="modal-row-name">${fmtDate(t.date)}</span>
-                    <span class="modal-row-val">${t.rwScore + t.mathScore} / 1600</span>
+                    <span class="modal-row-name">${esc(t.testName || 'Practice test')} · ${fmtDate(t.date)}</span>
+                    <span class="modal-row-val">${SAT_TESTS.scoreLabel(t).value} ${SAT_TESTS.scoreLabel(t).denom}</span>
                 </div>`).join('');
 
-        const secBreakdownHTML = !section && Object.values(secCounts).some(c => c > 0) ? `
-            <p class="modal-sec-label">By Section</p>
+        const accHTML = stat.accuracy == null
+            ? `<p class="modal-none">Accuracy needs a test that classified every question — an AI import does this automatically.</p>`
+            : `<div class="modal-row">
+                   <span class="modal-row-name">Correct</span>
+                   <span class="modal-row-val">${stat.correct} / ${stat.attempted} · ${pctText(stat.accuracy)}</span>
+               </div>`;
+
+        const secBreakdownHTML = !section && perModule.length ? `
+            <p class="modal-sec-label">By Module</p>
             <div class="modal-2col">${secGridHTML}</div>
             <hr class="modal-divider">` : '';
 
         showModal(`
-            <p class="modal-eyebrow">${section ? SEC_LABELS[section] : 'All Sections'}</p>
-            <div class="modal-hero">${total}<span class="modal-hero-denom" style="font-size:1.375rem">×</span></div>
-            <div class="modal-sub">${skill}</div>
+            <p class="modal-eyebrow">${section ? esc(SEC_LABELS[section]) : 'All Sections'}</p>
+            <div class="modal-hero">${stat.missed}<span class="modal-hero-denom" style="font-size:1.375rem">×</span></div>
+            <div class="modal-sub">${esc(label)}</div>
+            <hr class="modal-divider">
+            <p class="modal-sec-label">Accuracy</p>
+            ${accHTML}
             <hr class="modal-divider">
             ${secBreakdownHTML}
             <p class="modal-sec-label">Appeared in ${testHits.length} test${testHits.length !== 1 ? 's' : ''}</p>
@@ -1781,39 +1976,40 @@
     }
 
     function showSectionDetail(secKey) {
-        const skillCounts = {};
-        const testHits    = [];
-        lastFiltered.forEach(t => {
-            let hit = false;
-            (t.missedQuestions || []).forEach(q => {
-                if (q.section !== secKey) return;
-                if (q.skill) skillCounts[q.skill] = (skillCounts[q.skill] || 0) + 1;
-                hit = true;
-            });
-            if (hit) testHits.push(t);
-        });
-        const total   = Object.values(skillCounts).reduce((a, b) => a + b, 0);
-        const entries = Object.entries(skillCounts).sort((a, b) => b[1] - a[1]).slice(0, 10);
+        const stats = SAT_TESTS.skillStats(lastFiltered, { module: secKey })
+            .filter(e => e.missed > 0).slice(0, 10);
+        const total = stats.reduce((s, e) => s + e.missed, 0);
+        const mod   = SAT_TESTS.moduleStats(lastFiltered).find(m => m.key === secKey);
+        const testHits = lastFiltered.filter(t =>
+            (t.missedQuestions || []).some(q => q.section === secKey));
 
-        const skillsHTML = entries.length === 0
+        const skillsHTML = stats.length === 0
             ? '<p class="modal-none">No skill data logged</p>'
-            : entries.map(([skill, count]) => `
+            : stats.map(e => `
                 <div class="modal-row">
-                    <span class="modal-row-name">${skill}</span>
-                    <span class="modal-row-val">${count}×</span>
+                    <span class="modal-row-name">${esc(e.label)}</span>
+                    <span class="modal-row-val">${e.missed}×${e.accuracy == null ? '' : ` · ${pctText(e.accuracy)}`}</span>
                 </div>`).join('');
+
+        const accHTML = mod && mod.accuracy != null ? `
+            <div class="modal-row">
+                <span class="modal-row-name">Module accuracy</span>
+                <span class="modal-row-val">${mod.correct} / ${mod.total} · ${pctText(mod.accuracy)}</span>
+            </div>
+            <hr class="modal-divider">` : '';
 
         const testsHTML = testHits.map(t => `
             <div class="modal-row">
-                <span class="modal-row-name">${fmtDate(t.date)}</span>
-                <span class="modal-row-val">${t.rwScore + t.mathScore} / 1600</span>
+                <span class="modal-row-name">${esc(t.testName || 'Practice test')} · ${fmtDate(t.date)}</span>
+                <span class="modal-row-val">${SAT_TESTS.scoreLabel(t).value} ${SAT_TESTS.scoreLabel(t).denom}</span>
             </div>`).join('');
 
         showModal(`
-            <p class="modal-eyebrow">Misses by Section</p>
+            <p class="modal-eyebrow">Misses by Module</p>
             <div class="modal-hero">${total}</div>
-            <div class="modal-sub">${SEC_LABELS[secKey]} &nbsp;·&nbsp; total misses</div>
+            <div class="modal-sub">${esc(SEC_LABELS[secKey])} &nbsp;·&nbsp; total misses</div>
             <hr class="modal-divider">
+            ${accHTML}
             <p class="modal-sec-label">Top Skills</p>
             ${skillsHTML}
             <hr class="modal-divider">

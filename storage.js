@@ -65,6 +65,12 @@ const SAT_STORAGE = (() => {
         isConnected()     { return !!(_db && _uid); },
         manualSync()      { return _pull(); },
 
+        /* Exposed so test-store.js can write its own per-test documents under
+         * users/{uid}/tests/{id}. A single test's JSON is ~100 KB, so full
+         * records can't live inside the one `data/main` document — Firestore
+         * caps a document at 1 MB. */
+        _firestore()      { return { db: _db, uid: _uid }; },
+
         async getSessions()          { return _lsGet(); },
         async getTests()             { return _lsGetTests(); },
         async saveSessions(sessions) { _lsSet(sessions); _push(sessions, _lsGetTests()); },

@@ -9,11 +9,18 @@
 //        rules_version = '2';
 //        service cloud.firestore {
 //          match /databases/{database}/documents {
-//            match /users/{uid}/data/{doc} {
+//            match /users/{uid}/{document=**} {
 //              allow read, write: if request.auth != null && request.auth.uid == uid;
 //            }
 //          }
 //        }
+//
+//      The recursive {document=**} matcher replaces the old /data/{doc} rule.
+//      Practice tests now store their full JSON record in its own document at
+//      users/{uid}/tests/{testId} — one test is ~100 KB, so bundling every
+//      test into users/{uid}/data/main would hit Firestore's 1 MB per-document
+//      limit after a handful of them. The narrower rule would deny those
+//      writes. See APP_UPDATE_TEST_PIPELINE.md §5.3.
 //   5. Project Settings → Your apps → Add app (Web) → copy config below
 //
 // Note: Firebase web config values are safe to commit — security is enforced

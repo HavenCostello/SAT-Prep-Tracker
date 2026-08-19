@@ -212,26 +212,78 @@ body {
     -webkit-backdrop-filter: blur(20px);
     border-top: 1px solid var(--gray);
     display: flex;
-    align-items: stretch;
+    align-items: center;
     z-index: 200;
 }
 
-.bn-item {
-    flex: 1;
+/* Sliding pill — same mechanic as .nav-indicator/.nav-pill-reveal: a dark
+   pill glides beneath the active tab (position: absolute against
+   .bottom-nav, which is itself position: fixed and so already a valid
+   containing block) while a white icon+label duplicate is revealed on top
+   of it via a clip-path driven by the same left/width/top/height numbers,
+   so the tab turns white continuously as the pill arrives instead of
+   flipping the instant a tab becomes .active. */
+.bn-indicator {
+    position: absolute;
+    background: var(--dark);
+    border-radius: 0.625rem;
+    transition: left 0.4s cubic-bezier(0.34, 1.1, 0.64, 1), width 0.4s cubic-bezier(0.34, 1.1, 0.64, 1),
+                top 0.4s cubic-bezier(0.34, 1.1, 0.64, 1), height 0.4s cubic-bezier(0.34, 1.1, 0.64, 1);
+    pointer-events: none;
+    z-index: 1;
+}
+.bn-indicator.no-transition { transition: none; }
+
+.bn-reveal {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    clip-path: inset(0 100% 100% 0);
+    transition: clip-path 0.4s cubic-bezier(0.34, 1.1, 0.64, 1);
+    z-index: 3;    /* above .bn-item (z-index: 2), so the white icon/label paint over the gray ones */
+}
+.bn-reveal.no-transition { transition: none; }
+.bn-reveal-item {
+    position: absolute;
+    top: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 0.1875rem;
+    color: var(--white);
+}
+.bn-reveal-item .bn-icon { transform: scale(1.08); }
+
+.bn-item {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     text-decoration: none;
     color: var(--gray-mid);
     min-width: 0;
     min-height: 3rem;           /* 48 px touch target */
-    transition: color 0.12s;
     -webkit-tap-highlight-color: transparent;
-    padding: 0 0.125rem;
+    position: relative;
+    z-index: 2;    /* always above .bn-indicator (z-index: 1) */
 }
-.bn-item.active { color: var(--dark); }
+/* No .active color override here — the real tab stays gray-mid always.
+   The white icon/label come entirely from .bn-reveal, clipped to the
+   indicator's live position, so they change continuously as the pill
+   slides over them instead of flipping the instant a tab becomes .active. */
+
+.bn-pill {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.1875rem;
+    max-width: 100%;
+    min-width: 0;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.625rem;
+}
 
 .bn-icon {
     width: 1.25rem;
@@ -256,6 +308,7 @@ body {
 @media (max-width: 359px) {
     .bn-label { display: none; }
     .bn-item  { justify-content: center; }
+    .bn-reveal-item .bn-label { display: none; }
 }
 
 /* ═══════════════════════════════════════════
@@ -297,8 +350,10 @@ body {
     gap: 0.75rem;
     margin-bottom: 1.5rem;
 }
+.stats-grid--3up { grid-template-columns: repeat(3, 1fr); gap: var(--sp-md); }
 
 .stat-card {
+    container-type: inline-size;
     border-radius: 1.25rem;
     padding: clamp(1.25rem, 4vw, 2.25rem) clamp(1.125rem, 4vw, 2.5rem);
     display: flex;
@@ -318,21 +373,36 @@ body {
 .stat-card--dark  .stat-label { opacity: 0.6; }
 .stat-card--light .stat-label { color: var(--gray-text); }
 
-.stat-value-row { display: flex; align-items: baseline; gap: 0.375rem; }
+.stat-value-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.375rem; }
 .stat-value {
-    font-size: clamp(1.75rem, 7vw, 3.75rem);
+    font-size: clamp(1.75rem, 19cqi, 4rem);
     font-weight: 300;
     letter-spacing: -0.06em;
     line-height: 1;
     font-variant-numeric: tabular-nums;
+    white-space: nowrap;
 }
 .stat-unit {
-    font-size: clamp(0.8125rem, 2.5vw, 1.0625rem);
+    font-size: clamp(0.8125rem, 7cqi, 1.125rem);
     font-weight: 400;
     letter-spacing: -0.04em;
+    white-space: nowrap;
 }
 .stat-card--dark  .stat-unit { opacity: 0.5; }
 .stat-card--light .stat-unit { color: var(--gray-text); }
+
+/* Only 3 cards share the row here (vs. 2 elsewhere), and two of them have
+   no meta line taking up space below, so they can afford noticeably
+   bigger numerals than the shared 2-up default. */
+.stats-grid--3up .stat-value { font-size: clamp(2rem, 24cqi, 4.5rem); }
+.stats-grid--3up .stat-unit  { font-size: clamp(0.875rem, 8.5cqi, 1.25rem); }
+
+/* Boxes sized to comfortably hold the bigger numerals above, padding and
+   floor height snapped to the 8px spacing scale (4/8/16/32/64/128). */
+.stats-grid--3up .stat-card {
+    padding: clamp(var(--sp-md), 4vw, var(--sp-lg));
+    min-height: clamp(7.5rem, 20vw, 11rem);
+}
 
 .stat-meta {
     font-size: 0.6875rem;
@@ -340,6 +410,7 @@ body {
     letter-spacing: -0.01em;
     margin-top: 0.5rem;
 }
+.stat-meta:empty { display: none; margin-top: 0; }
 .stat-card--dark  .stat-meta { opacity: 0.45; }
 .stat-card--light .stat-meta { color: var(--gray-text); }
 
@@ -374,6 +445,20 @@ body {
     font-size: 0.75rem;
     color: var(--gray-text);
 }
+
+/* Score-increase-per-week badge next to a score chart's peak label. Rising
+   (good news) stays muted; falling is bold/dark — the same "don't dwell on
+   the good news, flag the bad" weighting used for skill-progress deltas
+   elsewhere, so a declining trend can't be skimmed past. */
+.chart-trend-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+.chart-trend-label.trend-rising  { color: var(--gray-text); }
+.chart-trend-label.trend-falling { color: var(--dark); font-weight: 600; }
 
 .chart-bars-area { height: 8.125rem; position: relative; }
 
@@ -579,13 +664,71 @@ body {
 
 /* ═══════════════════════════════════════════
    FILTER BAR
+   Same sliding-pill mechanic as .nav-pills/.nav-indicator: a dark pill
+   glides beneath the buttons (position: absolute, outside the scrolling
+   strip so its bounce overshoot is never clipped) while a white text
+   duplicate is revealed underneath it via a clip-path driven by the same
+   left/width numbers, so the label turns white continuously as the pill
+   passes over it rather than flipping the instant a button becomes .active.
 ═══════════════════════════════════════════ */
+.filter-bar-wrap {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
 .filter-bar {
     display: flex;
     align-items: center;
     gap: 0.375rem;
-    margin-bottom: 1.5rem;
-    flex-wrap: wrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    position: relative;
+    cursor: grab;
+    -webkit-user-select: none;
+    user-select: none;
+}
+.filter-bar::-webkit-scrollbar { display: none; }
+.filter-bar.dragging { cursor: grabbing; scroll-behavior: auto; }
+
+/* Lives outside .filter-bar (see header comment) so it can overshoot the
+   scrollable strip's edge without being clipped by overflow-x: auto. */
+.filter-pill-indicator {
+    position: absolute;
+    background: var(--dark);
+    border-radius: 6.25rem;
+    transition: left 0.4s cubic-bezier(0.34, 1.1, 0.64, 1), width 0.4s cubic-bezier(0.34, 1.1, 0.64, 1);
+    pointer-events: none;
+    z-index: 1;
+}
+.filter-pill-indicator.no-transition { transition: none; }
+
+.filter-pill-reveal {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    clip-path: inset(0 100% 0 0);
+    transition: clip-path 0.4s cubic-bezier(0.34, 1.1, 0.64, 1);
+    z-index: 3;    /* above .filter-btn (z-index: 2), so the white text paints over the gray text */
+}
+.filter-pill-reveal.no-transition { transition: none; }
+.filter-pill-label {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    padding: 0.5625rem 0.875rem;
+    color: var(--white);
+    white-space: nowrap;
+    line-height: 1;
 }
 
 .filter-btn {
@@ -595,19 +738,26 @@ body {
     letter-spacing: -0.02em;
     padding: 0.5625rem 0.875rem;
     border-radius: 6.25rem;
-    border: 1.5px solid var(--gray);
+    border: none;
     background: transparent;
     color: var(--gray-text);
     cursor: pointer;
-    transition: all 0.15s;
+    transition: color 0.3s cubic-bezier(0.34, 1.1, 0.64, 1);
     min-height: 3rem;
     display: inline-flex;
     align-items: center;
+    white-space: nowrap;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 2;    /* always above .filter-pill-indicator (z-index: 1), which lives outside .filter-bar */
 }
-.filter-btn.active { background: var(--dark); border-color: var(--dark); color: var(--white); }
+/* No .active color override here — the real button text stays gray-text
+   always. The white color comes entirely from .filter-pill-reveal, clipped
+   to the indicator's live position, so it changes continuously as the pill
+   slides over it instead of flipping the instant a filter becomes .active. */
 
 @media (hover: hover) and (pointer: fine) {
-    .filter-btn:hover { border-color: var(--dark); color: var(--dark); }
+    .filter-btn:hover:not(.active) { background: rgba(30,30,30,0.06); color: var(--dark); }
 }
 
 /* Date range picker */
@@ -858,7 +1008,7 @@ select {
     .delete-btn { width: 1.75rem; height: 1.75rem; }
 
     .bar-lbl { font-size: 0.625rem; }
-    .filter-btn { font-size: 0.8125rem; padding: 0.5625rem 1.125rem; }
+    .filter-btn, .filter-pill-label { font-size: 0.8125rem; padding: 0.5625rem 1.125rem; }
     .btn-submit { width: auto; }
 }
 
@@ -1183,6 +1333,12 @@ select {
 .acc-val strong { color: var(--dark); font-weight: 500; }
 .acc-track { height: 5px; border-radius: 6.25rem; background: var(--off-white); overflow: hidden; }
 .acc-fill  { height: 100%; border-radius: 6.25rem; transition: width 0.55s cubic-bezier(0.34,1.1,0.64,1); }
+/* Unrated row: no accuracy is known, so the fill is sized by share of misses
+   instead of a real percentage. Hatched + dimmer so it never reads as a rate. */
+.acc-fill--share {
+    opacity: 0.4;
+    background-image: repeating-linear-gradient(135deg, rgba(255,255,255,0.55) 0 3px, transparent 3px 6px);
+}
 
 /* â”€â”€ Chip rows â”€â”€ */
 .chip-row { display: flex; flex-wrap: wrap; gap: 0.375rem; }

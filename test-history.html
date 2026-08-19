@@ -129,26 +129,85 @@
         .skill-progress-delta--up   { color: var(--gray-text); }
         .skill-progress-delta--down { color: var(--dark); font-weight: 600; }
 
-        /* ── Missed-skills breakdown ── */
+        /* ── Focus on (comprehensive priority breakdown) ── */
         .breakdown-section {
             background: var(--off-white);
             border-radius: 1.25rem;
             padding: clamp(1.25rem, 4vw, 1.75rem) clamp(1.125rem, 4vw, 2rem);
             margin-bottom: 2rem;
         }
+        .breakdown-header   { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.25rem; }
         .breakdown-title {
             font-size: 0.6875rem;
             font-weight: 500;
             letter-spacing: 0.09em;
             text-transform: uppercase;
             color: var(--gray-text);
-            margin-bottom: 1.25rem;
         }
+        .breakdown-meta     { font-family: 'Libre Baskerville', serif; font-style: italic; font-size: 0.75rem; color: var(--gray-text); }
+        .breakdown-subtitle { font-family: 'Libre Baskerville', serif; font-style: italic; font-size: 0.75rem; color: var(--gray-mid); margin-bottom: 1.125rem; }
         .breakdown-empty {
             font-family: 'Libre Baskerville', serif;
             font-style: italic;
             font-size: 0.8125rem;
             color: var(--gray-text);
+        }
+
+        /* Chart on top (full width), full ranked list underneath */
+        .priority-body { display: flex; flex-direction: column; gap: 1.5rem; }
+        .priority-chart-wrap { display: flex; flex-direction: column; }
+        .priority-list { display: flex; flex-direction: column; }
+        .priority-row {
+            display: flex; align-items: center; gap: 0.625rem;
+            padding: 0.625rem 0.125rem;
+            min-height: 2.75rem;
+            border-bottom: 1px solid rgba(30,30,30,0.08);
+            cursor: pointer;
+            transition: opacity 0.15s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .priority-row:last-child { border-bottom: none; }
+        @media (hover: hover) and (pointer: fine) { .priority-row:hover { opacity: 0.6; } }
+        .priority-row-rank {
+            font-family: 'Libre Baskerville', serif; font-style: italic;
+            font-size: 0.8125rem; color: var(--gray-mid);
+            width: 1rem; flex-shrink: 0; text-align: center;
+        }
+        .priority-row-dot  { width: 0.5rem; height: 0.5rem; border-radius: 50%; flex-shrink: 0; }
+        .priority-row-name {
+            font-size: 0.8125rem; font-weight: 500; letter-spacing: -0.01em; color: var(--dark);
+            flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .priority-row-count { font-size: 0.75rem; color: var(--gray-text); flex-shrink: 0; font-variant-numeric: tabular-nums; }
+
+        .priority-chart-label {
+            font-size: 0.625rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase;
+            color: var(--gray-mid); margin-bottom: 0.625rem;
+        }
+        .priority-chart { height: clamp(6.5rem, 26vw, 8.75rem); position: relative; }
+        .vbar-baseline { position: absolute; left: 0; right: 0; bottom: 0; height: 1.5px; background: var(--gray); }
+        .vbar-scroll {
+            position: absolute; inset: 0; overflow-x: auto; overflow-y: hidden;
+            -webkit-overflow-scrolling: touch; scrollbar-width: none;
+        }
+        .vbar-scroll::-webkit-scrollbar { display: none; }
+        .vbar-row { height: 100%; width: max-content; min-width: 100%; display: flex; align-items: flex-end; gap: 4px; }
+        .vbar-item { flex: 0 0 clamp(1rem, 4.5vw, 1.375rem); width: clamp(1rem, 4.5vw, 1.375rem); height: 100%; display: flex; align-items: flex-end; }
+        .vbar-inner {
+            width: 100%; height: 0; border-radius: 3px 3px 0 0;
+            transition: height 0.45s cubic-bezier(0.4,0,0.2,1), opacity 0.15s;
+            cursor: pointer; position: relative;
+        }
+        .vbar-inner:not(.is-top) { opacity: 0.45; }
+        @media (hover: hover) and (pointer: fine) { .vbar-inner:hover { opacity: 1 !important; } }
+
+        .priority-list-divider {
+            border: none; border-top: 1px solid rgba(30,30,30,0.08);
+            margin: 0 0 0.25rem;
+        }
+        .priority-list-label {
+            font-size: 0.625rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase;
+            color: var(--gray-mid); margin: 0.25rem 0 0.375rem;
         }
 
         /* ── Section totals breakdown ── */
@@ -173,33 +232,50 @@
             color: var(--gray-text);
         }
 
-        /* ── Per-section skills grid ── */
-        .section-skills-grid {
+        /* ── Section totals: compact 4-up tiles (was 4 stacked full rows) ── */
+        .section-mini-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.25rem 1rem;
+        }
+        @media (min-width: 640px) { .section-mini-grid { grid-template-columns: repeat(4, 1fr); } }
+        .section-mini-item { min-width: 0; }
+        .section-mini-label {
+            font-size: 0.75rem; font-weight: 500; letter-spacing: -0.01em; color: var(--dark);
+            margin-bottom: 0.3125rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .section-mini-val {
+            font-size: 0.6875rem; color: var(--gray-text); margin-bottom: 0.4375rem;
+            font-variant-numeric: tabular-nums; white-space: nowrap;
+        }
+        .section-mini-val strong { color: var(--dark); font-weight: 500; }
+        .section-mini-track { height: 4px; border-radius: 6.25rem; background: rgba(30,30,30,0.08); overflow: hidden; }
+        .section-mini-fill { height: 100%; border-radius: 6.25rem; width: 0; transition: width 0.55s cubic-bezier(0.34,1.1,0.64,1); }
+
+        .section-mini-divider { border: none; border-top: 1px solid rgba(30,30,30,0.08); margin: 1.5rem 0; }
+
+        /* ── Per-section skills, folded into the same panel as 4 tight columns
+           (was 4 separate boxes, each with its own padding/border-radius) ── */
+        .section-mini-skills-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-            margin-bottom: 2rem;
+            gap: 1.5rem 1.25rem;
         }
-        @media (max-width: 479px) { .section-skills-grid { grid-template-columns: 1fr; } }
+        @media (min-width: 640px) { .section-mini-skills-grid { grid-template-columns: repeat(4, 1fr); } }
+        .section-mini-skill-col { min-width: 0; }
+        .section-mini-skill-label {
+            font-size: 0.625rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase;
+            color: var(--gray-mid); margin-bottom: 0.625rem;
+        }
+        /* Denser row rhythm than the full-width accuracy panels elsewhere on
+           this page — four columns side by side need less per-row height to
+           stay readable without ballooning the page. */
+        .section-mini-skill-col .acc-row      { padding: 0.4375rem 0; }
+        .section-mini-skill-col .acc-row-top  { margin-bottom: 0.25rem; }
+        .section-mini-skill-col .acc-name     { font-size: 0.75rem; }
+        .section-mini-skill-col .acc-val      { font-size: 0.625rem; }
+        .section-mini-skill-col .acc-track    { height: 3px; }
 
-        .section-skill-panel {
-            background: var(--off-white);
-            border-radius: 1.25rem;
-            padding: clamp(1rem, 3vw, 1.5rem) clamp(0.875rem, 3vw, 1.75rem);
-        }
-        .section-panel-title {
-            font-size: 0.6875rem;
-            font-weight: 500;
-            letter-spacing: 0.09em;
-            text-transform: uppercase;
-            color: var(--gray-text);
-            margin-bottom: 1rem;
-        }
-        .section-skill-panel .stacked-legend {
-            gap: 0.5rem;
-            margin-top: 0.75rem;
-        }
-        .section-skill-panel .stacked-legend-item { font-size: 0.6875rem; }
         .panel-empty {
             font-family: 'Libre Baskerville', serif;
             font-style: italic;
@@ -481,50 +557,98 @@
 
 <!-- Bottom nav (mobile) -->
 <nav class="bottom-nav" aria-label="Primary navigation">
-    <a href="home.html" class="bn-item" aria-label="Home">
+    <a href="home.html" class="bn-item" aria-label="Home"><span class="bn-pill">
         <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
             <path d="M3 10.5L12 3l9 7.5V21a1 1 0 01-1 1H4a1 1 0 01-1-1V10.5z"/>
             <path d="M9 22V12h6v10"/>
         </svg>
         <span class="bn-label">Home</span>
-    </a>
-    <a href="log.html" class="bn-item" aria-label="Log Session">
+    </span></a>
+    <a href="log.html" class="bn-item" aria-label="Log Session"><span class="bn-pill">
         <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="9"/>
             <line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
         </svg>
         <span class="bn-label">Log</span>
-    </a>
-    <a href="history.html" class="bn-item" aria-label="Session History">
+    </span></a>
+    <a href="history.html" class="bn-item" aria-label="Session History"><span class="bn-pill">
         <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/>
         </svg>
         <span class="bn-label">Study</span>
-    </a>
-    <a href="test.html" class="bn-item" aria-label="Log Test">
+    </span></a>
+    <a href="test.html" class="bn-item" aria-label="Log Test"><span class="bn-pill">
         <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
             <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
             <rect x="9" y="3" width="6" height="4" rx="1"/>
             <line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/>
         </svg>
         <span class="bn-label">Tests</span>
-    </a>
-    <a href="test-history.html" class="bn-item active" aria-current="page">
+    </span></a>
+    <a href="test-history.html" class="bn-item active" aria-current="page"><span class="bn-pill">
         <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
             <rect x="3" y="11" width="4" height="10" rx="1"/>
             <rect x="10" y="6" width="4" height="15" rx="1"/>
             <rect x="17" y="3" width="4" height="18" rx="1"/>
         </svg>
         <span class="bn-label">T. Hist</span>
-    </a>
-    <a href="sync.html" class="bn-item" aria-label="Sync">
+    </span></a>
+    <a href="sync.html" class="bn-item" aria-label="Sync"><span class="bn-pill">
         <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
             <path d="M2.5 2v6h6"/><path d="M21.5 22v-6h-6"/>
             <path d="M22 11.5A10 10 0 003.2 7.2"/>
             <path d="M2 12.5a10 10 0 0018.8 4.3"/>
         </svg>
         <span class="bn-label">Sync</span>
-    </a>
+    </span></a>
+    <div class="bn-reveal" aria-hidden="true">
+        <span class="bn-reveal-item">
+            <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 10.5L12 3l9 7.5V21a1 1 0 01-1 1H4a1 1 0 01-1-1V10.5z"/>
+                <path d="M9 22V12h6v10"/>
+            </svg>
+            <span class="bn-label">Home</span>
+        </span>
+        <span class="bn-reveal-item">
+            <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="9"/>
+                <line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
+            </svg>
+            <span class="bn-label">Log</span>
+        </span>
+        <span class="bn-reveal-item">
+            <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="9"/>
+                <polyline points="12 7 12 12 15 14"/>
+            </svg>
+            <span class="bn-label">Study</span>
+        </span>
+        <span class="bn-reveal-item">
+            <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
+                <rect x="9" y="3" width="6" height="4" rx="1"/>
+                <line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/>
+            </svg>
+            <span class="bn-label">Tests</span>
+        </span>
+        <span class="bn-reveal-item">
+            <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="4" height="10" rx="1"/>
+                <rect x="10" y="6" width="4" height="15" rx="1"/>
+                <rect x="17" y="3" width="4" height="18" rx="1"/>
+            </svg>
+            <span class="bn-label">T. Hist</span>
+        </span>
+        <span class="bn-reveal-item">
+            <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2.5 2v6h6"/><path d="M21.5 22v-6h-6"/>
+                <path d="M22 11.5A10 10 0 003.2 7.2"/>
+                <path d="M2 12.5a10 10 0 0018.8 4.3"/>
+            </svg>
+            <span class="bn-label">Sync</span>
+        </span>
+    </div>
+    <span class="bn-indicator" aria-hidden="true"></span>
 </nav>
 
 <div class="page page--wide">
@@ -532,7 +656,7 @@
     <h1 class="page-title">Test History</h1>
 
     <!-- Stat cards -->
-    <div class="stats-grid">
+    <div class="stats-grid stats-grid--3up">
         <div class="stat-card stat-card--dark">
             <div>
                 <p class="stat-label">Best score</p>
@@ -541,7 +665,6 @@
                     <span class="stat-unit"  id="bestUnit"></span>
                 </div>
             </div>
-            <p class="stat-meta" id="bestMeta"></p>
         </div>
         <div class="stat-card stat-card--light">
             <div>
@@ -551,17 +674,36 @@
                     <span class="stat-unit"  id="countUnit">tests</span>
                 </div>
             </div>
+        </div>
+        <div class="stat-card stat-card--light">
+            <div>
+                <p class="stat-label">Average score</p>
+                <div class="stat-value-row">
+                    <span class="stat-value" id="avgValue">—</span>
+                    <span class="stat-unit"  id="avgUnit"></span>
+                </div>
+            </div>
             <p class="stat-meta" id="avgMeta"></p>
         </div>
     </div>
 
     <!-- Filter bar -->
-    <div class="filter-bar">
-        <button class="filter-btn active" data-filter="all"    onclick="setFilter('all')">All time</button>
-        <button class="filter-btn"        data-filter="month"  onclick="setFilter('month')">This month</button>
-        <button class="filter-btn"        data-filter="week"   onclick="setFilter('week')">This week</button>
-        <button class="filter-btn"        data-filter="day"    onclick="setFilter('day')">Today</button>
-        <button class="filter-btn"        data-filter="custom" onclick="setFilter('custom')">Custom</button>
+    <div class="filter-bar-wrap">
+        <div class="filter-bar" id="filterBar">
+            <button class="filter-btn active" data-filter="all"    onclick="setFilter('all')">All time</button>
+            <button class="filter-btn"        data-filter="month"  onclick="setFilter('month')">This month</button>
+            <button class="filter-btn"        data-filter="week"   onclick="setFilter('week')">This week</button>
+            <button class="filter-btn"        data-filter="day"    onclick="setFilter('day')">Today</button>
+            <button class="filter-btn"        data-filter="custom" onclick="setFilter('custom')">Custom</button>
+            <div class="filter-pill-reveal" aria-hidden="true">
+                <span class="filter-pill-label">All time</span>
+                <span class="filter-pill-label">This month</span>
+                <span class="filter-pill-label">This week</span>
+                <span class="filter-pill-label">Today</span>
+                <span class="filter-pill-label">Custom</span>
+            </div>
+        </div>
+        <span class="filter-pill-indicator" aria-hidden="true"></span>
     </div>
     <div class="date-range-bar" id="dateRangeBar">
         <input type="date" class="date-range-input" id="dateFrom" onchange="applyCustomRange()">
@@ -575,6 +717,7 @@
             <span class="chart-title" id="chartTitle">Score over time</span>
             <div style="display:flex;align-items:center;gap:0.875rem;">
                 <span class="score-legend" id="scoreLegend"><span class="score-legend-pip"></span>Focus</span>
+                <span class="chart-trend-label" id="chartTrend"></span>
                 <span class="chart-peak-label" id="chartPeak"></span>
             </div>
         </div>
@@ -594,45 +737,43 @@
         </div>
     </div>
 
-    <!-- Missed skills breakdown -->
+    <!-- Focus on: comprehensive, recency-weighted priority breakdown -->
     <div class="breakdown-section">
-        <p class="breakdown-title" id="breakdownTitle">Most missed skills</p>
+        <div class="breakdown-header">
+            <p class="breakdown-title">Focus on</p>
+            <span class="breakdown-meta" id="breakdownMeta"></span>
+        </div>
+        <p class="breakdown-subtitle">Recent misses weighted higher — adapts as you improve</p>
         <div id="breakdownList">
             <p class="breakdown-empty">No missed questions logged yet</p>
         </div>
     </div>
 
-    <!-- Section totals -->
+    <!-- Section totals + per-section skills, one condensed panel -->
     <div class="section-breakdown">
         <p class="section-breakdown-title">Misses by section</p>
-        <div class="stacked-prop-bar" id="sectionStackBar"></div>
-        <div class="stacked-legend" id="sectionStackLegend"></div>
-    </div>
+        <div id="sectionAccList"><p class="section-breakdown-empty">No missed questions logged yet</p></div>
 
-    <!-- Per-section skills grid -->
-    <div class="section-skills-grid">
-        <div class="section-skill-panel">
-            <p class="section-panel-title">RW Section 1</p>
-            <div id="skillsRw1"><p class="panel-empty">No data</p></div>
-        </div>
-        <div class="section-skill-panel">
-            <p class="section-panel-title">RW Section 2</p>
-            <div id="skillsRw2"><p class="panel-empty">No data</p></div>
-        </div>
-        <div class="section-skill-panel">
-            <p class="section-panel-title">Math Section 1</p>
-            <div id="skillsM1"><p class="panel-empty">No data</p></div>
-        </div>
-        <div class="section-skill-panel">
-            <p class="section-panel-title">Math Section 2</p>
-            <div id="skillsM2"><p class="panel-empty">No data</p></div>
-        </div>
-    </div>
+        <div class="section-mini-divider"></div>
 
-    <!-- Accuracy by domain -->
-    <div class="section-breakdown">
-        <p class="section-breakdown-title">Accuracy by domain</p>
-        <div id="domainAccList"><p class="panel-empty">No question-level data yet</p></div>
+        <div class="section-mini-skills-grid">
+            <div class="section-mini-skill-col">
+                <p class="section-mini-skill-label">RW Section 1</p>
+                <div id="skillsRw1"><p class="panel-empty">No data</p></div>
+            </div>
+            <div class="section-mini-skill-col">
+                <p class="section-mini-skill-label">RW Section 2</p>
+                <div id="skillsRw2"><p class="panel-empty">No data</p></div>
+            </div>
+            <div class="section-mini-skill-col">
+                <p class="section-mini-skill-label">Math Section 1</p>
+                <div id="skillsM1"><p class="panel-empty">No data</p></div>
+            </div>
+            <div class="section-mini-skill-col">
+                <p class="section-mini-skill-label">Math Section 2</p>
+                <div id="skillsM2"><p class="panel-empty">No data</p></div>
+            </div>
+        </div>
     </div>
 
     <!-- Accuracy by difficulty -->
@@ -720,10 +861,20 @@
     /* One accuracy row. `accuracy` is null when no test in range classified
        every question on this dimension (a manually entered test knows its
        misses but not its denominator), so the row shows the miss count alone
-       rather than inventing a rate. */
+       rather than inventing a rate.
+
+       Without a rate there's nothing to fill the track with — a bare list of
+       numbers reads as text, not a chart. `shareMax` (the largest `missed`
+       across the rows being rendered together) lets an unrated row still draw
+       a bar sized by its share of that max, so the eye can compare rows at a
+       glance. It's drawn hatched and dimmer than a real accuracy fill so it
+       never gets mistaken for a percentage. */
     function accRowHTML(opts) {
-        const { name, accuracy, correct, total, missed, color, attrs = '', lead = 'accuracy' } = opts;
-        const width = accuracy == null ? 0 : Math.max(accuracy * 100, 1.5);
+        const { name, accuracy, correct, total, missed, color, attrs = '', lead = 'accuracy', shareMax = 0 } = opts;
+        const rated = accuracy != null;
+        const width = rated
+            ? Math.max(accuracy * 100, 1.5)
+            : (shareMax > 0 ? Math.max(missed / shareMax * 100, 4) : 0);
         // Lead with whatever the list is ordered by, so the number your eye
         // lands on is the one that put the row in that position.
         /* When the misses all came from tests that also knew their denominator,
@@ -732,8 +883,8 @@
            answers, the rate covers a smaller sample than the miss count does —
            saying so is the difference between "1× · 100%" (nonsense at a
            glance) and "1 missed · 12/12 counted" (true and readable). */
-        const rateCoversAll = accuracy != null && missed === total - correct;
-        const right = accuracy == null
+        const rateCoversAll = rated && missed === total - correct;
+        const right = !rated
             ? `<strong>${missed}</strong> missed`
             : lead === 'missed'
             ? (rateCoversAll
@@ -747,7 +898,7 @@
                     <span class="acc-val">${right}</span>
                 </div>
                 <div class="acc-track">
-                    <div class="acc-fill" data-w="${width.toFixed(1)}" style="width:0;background:${color}"></div>
+                    <div class="acc-fill${rated ? '' : ' acc-fill--share'}" data-w="${width.toFixed(1)}" style="width:0;background:${color}"></div>
                 </div>
             </div>`;
     }
@@ -838,6 +989,7 @@
         const bars = slice.map(t => ({
             label: fmtDateShort(t.date),
             value: t.rwScore + t.mathScore,
+            date:  t.date,
             tip:   `${t.testName || fmtDateShort(t.date)}: ${t.scoresEstimated ? '~' : ''}${t.rwScore + t.mathScore} / 1600`,
             id:    t.id,
         }));
@@ -858,6 +1010,16 @@
         document.getElementById('chartTitle').textContent = title;
         document.getElementById('chartPeak').textContent  =
             peak ? `Peak: ${peak.value} / 1600` : '';
+
+        const trendEl = document.getElementById('chartTrend');
+        const perWeek = SAT_TESTS.weeklyTrend(bars);
+        if (perWeek == null) {
+            trendEl.textContent = '';
+        } else {
+            const rising = perWeek >= 0;
+            trendEl.className   = `chart-trend-label ${rising ? 'trend-rising' : 'trend-falling'}`;
+            trendEl.textContent = `${rising ? '↑' : '↓'} ${Math.abs(perWeek).toFixed(1)}/wk`;
+        }
 
         const content = document.getElementById('chartContent');
         if (bars.length === 0) {
@@ -1133,78 +1295,139 @@
         downEl.innerHTML = rowsHTML(worsening, 'worsening');
     }
 
-    /* Most missed skills, now reported as a rate wherever a rate is knowable.
-       Ordering is still by miss count — that is what you actually want to work
-       on — but the bar length shows accuracy, so a skill missed 3 times out of
-       10 attempts no longer looks worse than one missed 2 times out of 2. */
+    /* Focus on: every missed-skill category, ranked by a recency-weighted
+       score (most recent misses count more — see home.html's priority card,
+       which this mirrors). The chart plots every category up top; the full
+       ranked list of every category follows underneath, top 5 highlighted
+       in both. */
     function renderBreakdown(tests) {
-        const listEl  = document.getElementById('breakdownList');
-        const titleEl = document.getElementById('breakdownTitle');
+        const listEl = document.getElementById('breakdownList');
+        const metaEl = document.getElementById('breakdownMeta');
+        const now    = Date.now();
 
-        const stats = SAT_TESTS.skillStats(tests).filter(e => e.missed > 0).slice(0, 10);
+        const skillW = {}, skillCounts = {}, skillLabels = {}, skillSecs = {};
+        tests.forEach(t => {
+            const daysAgo = (now - new Date(t.date).getTime()) / 86400000;
+            const w = Math.exp(-0.04 * daysAgo);
+            (t.missedQuestions || []).forEach(q => {
+                const key = q.skillKey || SAT_TAXONOMY.skillKey(q.skill, q.domain);
+                if (!key) return;
+                skillLabels[key] = skillLabels[key] || q.skill || key;
+                skillW[key]      = (skillW[key]      || 0) + w;
+                skillCounts[key] = (skillCounts[key] || 0) + 1;
+                if (!skillSecs[key]) skillSecs[key] = { rw: 0, math: 0 };
+                if (q.section === 'rw1' || q.section === 'rw2') skillSecs[key].rw++;
+                else skillSecs[key].math++;
+            });
+        });
 
-        if (stats.length === 0) {
-            titleEl.textContent = 'Most missed skills';
+        const all = Object.entries(skillW).sort((a, b) => b[1] - a[1]);
+        if (all.length === 0) {
+            metaEl.textContent = '';
             listEl.innerHTML = '<p class="breakdown-empty">No missed questions logged yet</p>';
             return;
         }
 
-        const totalMissed = stats.reduce((s, e) => s + e.missed, 0);
-        titleEl.textContent = `Most missed skills · ${totalMissed} total`;
+        const maxW = all[0][1];
 
-        listEl.innerHTML = stats.map(e => accRowHTML({
-            name: e.label,
-            accuracy: e.accuracy,
-            correct: e.correct,
-            total: e.attempted,
-            missed: e.missed,
-            lead: 'missed',
-            color: e.section === 'rw' ? RW_COLOR : MATH_COLOR,
-            attrs: `data-skill="${esc(e.key)}" style="cursor:pointer"
-                    onclick="showSkillDetail(this.dataset.skill)"
-                    onmouseenter="hoverSkill(this.dataset.skill)"
-                    onmouseleave="hideHoverPreview()"`
-        })).join('');
-        animateAccFills(listEl);
+        metaEl.textContent = `${all.length} skill${all.length !== 1 ? 's' : ''}`;
+
+        const rowsHTML = all.map(([key], i) => {
+            const sc    = skillSecs[key] || { rw: 0, math: 0 };
+            const isTop = i < 5;
+            const color = isTop ? (sc.rw >= sc.math ? RW_COLOR : MATH_COLOR) : 'var(--gray-mid)';
+            return `<div class="priority-row"
+                        data-skill="${esc(key)}"
+                        onclick="showSkillDetail(this.dataset.skill)"
+                        onmouseenter="hoverSkill(this.dataset.skill)" onmouseleave="hideHoverPreview()">
+                <span class="priority-row-rank">${i + 1}</span>
+                <span class="priority-row-dot" style="background:${color}"></span>
+                <span class="priority-row-name">${esc(skillLabels[key])}</span>
+                <span class="priority-row-count">${skillCounts[key]}×</span>
+            </div>`;
+        }).join('');
+
+        const barsHTML = all.map(([key, w], i) => {
+            const sc    = skillSecs[key] || { rw: 0, math: 0 };
+            const isTop = i < 5;
+            const color = isTop ? (sc.rw >= sc.math ? RW_COLOR : MATH_COLOR) : 'var(--gray-mid)';
+            const hPct  = (w / maxW * 100).toFixed(1);
+            return `<div class="vbar-item">
+                <div class="vbar-inner${isTop ? ' is-top' : ''}" data-h="${hPct}" style="height:0;background:${color}"
+                     data-skill="${esc(key)}"
+                     onclick="showSkillDetail(this.dataset.skill)"
+                     onmouseenter="hoverSkill(this.dataset.skill)" onmouseleave="hideHoverPreview()"></div>
+            </div>`;
+        }).join('');
+
+        listEl.innerHTML = `
+            <div class="priority-body">
+                <div class="priority-chart-wrap">
+                    <p class="priority-chart-label">All categories &middot; top 5 highlighted</p>
+                    <div class="priority-chart">
+                        <div class="vbar-baseline"></div>
+                        <div class="vbar-scroll"><div class="vbar-row">${barsHTML}</div></div>
+                    </div>
+                </div>
+                <div>
+                    <hr class="priority-list-divider">
+                    <p class="priority-list-label">Every skill, ranked</p>
+                    <div class="priority-list">${rowsHTML}</div>
+                </div>
+            </div>`;
+
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+            listEl.querySelectorAll('.vbar-inner[data-h]').forEach(b => {
+                b.style.height = b.getAttribute('data-h') + '%';
+            });
+        }));
     }
 
+    /* One labeled row per module, sorted low-accuracy-first so the section
+       needing the most work reads at a glance instead of being inferred from
+       four same-colored bar segments. */
+    /* Compact 4-up tiles instead of 4 stacked full-width rows: label, count,
+       and a thin share/accuracy bar, laid out side by side so the whole
+       module breakdown reads in one line instead of four. */
     function renderSectionBreakdown(tests) {
-        const barEl    = document.getElementById('sectionStackBar');
-        const legendEl = document.getElementById('sectionStackLegend');
-        const sections = [
-            { key: 'rw1', label: 'RW S1' },
-            { key: 'rw2', label: 'RW S2' },
-            { key: 'm1',  label: 'M S1'  },
-            { key: 'm2',  label: 'M S2'  },
-        ];
-        const counts = { rw1: 0, rw2: 0, m1: 0, m2: 0 };
-        tests.forEach(t => {
-            (t.missedQuestions || []).forEach(q => {
-                if (counts[q.section] !== undefined) counts[q.section]++;
-            });
-        });
-        const total = Object.values(counts).reduce((a, b) => a + b, 0);
+        const listEl = document.getElementById('sectionAccList');
+        const stats  = SAT_TESTS.moduleStats(tests).filter(e => e.missed > 0);
 
-        if (total === 0) {
-            barEl.innerHTML    = '';
-            legendEl.innerHTML = '<p class="section-breakdown-empty">No missed questions logged yet</p>';
+        if (stats.length === 0) {
+            listEl.className = '';
+            listEl.innerHTML = '<p class="section-breakdown-empty">No missed questions logged yet</p>';
             return;
         }
 
-        barEl.innerHTML = sections
-            .filter(s => counts[s.key] > 0)
-            .map(s => {
-                const pct = (counts[s.key] / total * 100).toFixed(2);
-                return `<div class="stacked-seg" style="background:${SEC_COLORS[s.key]};width:${pct}%;cursor:pointer;" data-sec-key="${s.key}" onclick="showSectionDetail(this.dataset.secKey)" onmouseenter="hoverSection(this.dataset.secKey)" onmouseleave="hideHoverPreview()"></div>`;
-            }).join('');
+        const shareMax = Math.max(...stats.map(e => e.missed));
+        listEl.className = 'section-mini-grid';
+        listEl.innerHTML = stats.map(e => {
+            const rated = e.accuracy != null;
+            const width = rated ? Math.max(e.accuracy * 100, 1.5) : Math.max(e.missed / shareMax * 100, 4);
+            const val = rated ? `<strong>${e.missed}</strong> missed · ${pctText(e.accuracy)}` : `<strong>${e.missed}</strong> missed`;
+            return `<div class="section-mini-item" data-sec-key="${esc(e.key)}" style="cursor:pointer"
+                        onclick="showSectionDetail(this.dataset.secKey)"
+                        onmouseenter="hoverSection(this.dataset.secKey)"
+                        onmouseleave="hideHoverPreview()">
+                <p class="section-mini-label">${esc(SEC_LABELS[e.key] || e.key)}</p>
+                <p class="section-mini-val">${val}</p>
+                <div class="section-mini-track">
+                    <div class="section-mini-fill${rated ? '' : ' acc-fill--share'}" data-w="${width.toFixed(1)}" style="background:${SEC_COLORS[e.key]}"></div>
+                </div>
+            </div>`;
+        }).join('');
 
-        legendEl.innerHTML = sections.map(s => `
-            <span class="stacked-legend-item" style="cursor:pointer;" data-sec-key="${s.key}" onclick="showSectionDetail(this.dataset.secKey)" onmouseenter="hoverSection(this.dataset.secKey)" onmouseleave="hideHoverPreview()">
-                <span class="stacked-legend-pip" style="background:${SEC_COLORS[s.key]}"></span>
-                ${s.label} <span class="stacked-legend-count">${counts[s.key]}</span>
-            </span>`).join('');
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+            listEl.querySelectorAll('.section-mini-fill[data-w]').forEach(el => {
+                el.style.width = el.getAttribute('data-w') + '%';
+            });
+        }));
     }
 
+    /* Same labeled-row treatment per section panel, folded into one panel as
+       four tight columns (see .section-mini-skill-col) instead of four
+       separate boxes — and capped to the top 5 so no column runs away with
+       the page's height. */
     function renderSectionSkills(tests) {
         const panels = [
             { key: 'rw1', id: 'skillsRw1' },
@@ -1217,47 +1440,30 @@
             const el    = document.getElementById(id);
             const color = key.startsWith('rw') ? RW_COLOR : MATH_COLOR;
             const stats = SAT_TESTS.skillStats(tests, { module: key })
-                .filter(e => e.missed > 0).slice(0, 8);
+                .filter(e => e.missed > 0).slice(0, 5);
 
             if (stats.length === 0) { el.innerHTML = '<p class="panel-empty">No data</p>'; return; }
 
-            const total = stats.reduce((s, e) => s + e.missed, 0);
-
-            const segsHTML = stats.map(e => {
-                const pct = (e.missed / total * 100).toFixed(2);
-                return `<div class="stacked-seg" style="background:${color};width:${pct}%;cursor:pointer;" data-skill="${esc(e.key)}" data-sec-key="${key}" onclick="showSkillDetail(this.dataset.skill, this.dataset.secKey)" onmouseenter="hoverSkill(this.dataset.skill, this.dataset.secKey)" onmouseleave="hideHoverPreview()"></div>`;
-            }).join('');
-
-            const legendHTML = stats.map(e => {
-                // Only a rate that covers every miss in this row; these legend
-                // chips have no room to qualify a partial one (see accRowHTML).
-                const rate = (e.accuracy != null && e.missed === e.attempted - e.correct)
-                    ? ` · ${pctText(e.accuracy)}` : '';
-                return `<span class="stacked-legend-item" style="cursor:pointer;" data-skill="${esc(e.key)}" data-sec-key="${key}" onclick="showSkillDetail(this.dataset.skill, this.dataset.secKey)" onmouseenter="hoverSkill(this.dataset.skill, this.dataset.secKey)" onmouseleave="hideHoverPreview()"><span class="stacked-legend-pip" style="background:${color}"></span>${esc(e.label)} <span class="stacked-legend-count">${e.missed}×${rate}</span></span>`;
-            }).join('');
-
-            el.innerHTML = `
-                <div class="stacked-prop-bar">${segsHTML}</div>
-                <div class="stacked-legend">${legendHTML}</div>`;
+            const shareMax = Math.max(...stats.map(e => e.missed));
+            el.innerHTML = stats.map(e => accRowHTML({
+                name: e.label,
+                accuracy: e.accuracy,
+                correct: e.correct,
+                total: e.attempted,
+                missed: e.missed,
+                lead: 'missed',
+                color,
+                shareMax,
+                attrs: `data-skill="${esc(e.key)}" data-sec-key="${key}" style="cursor:pointer"
+                        onclick="showSkillDetail(this.dataset.skill, this.dataset.secKey)"
+                        onmouseenter="hoverSkill(this.dataset.skill, this.dataset.secKey)"
+                        onmouseleave="hideHoverPreview()"`
+            })).join('');
+            animateAccFills(el);
         });
     }
 
     /* ── New panels, all driven by the per-test JSON records ── */
-
-    function renderDomainAccuracy(tests) {
-        const el = document.getElementById('domainAccList');
-        const stats = SAT_TESTS.domainStats(tests);
-        if (!stats.length) { el.innerHTML = '<p class="panel-empty">No question-level data yet</p>'; return; }
-        el.innerHTML = stats.map(e => accRowHTML({
-            name: e.key,
-            accuracy: e.accuracy,
-            correct: e.correct,
-            total: e.total,
-            missed: e.missed,
-            color: T.sectionOfDomain(e.key) === 'math' ? MATH_COLOR : RW_COLOR
-        })).join('');
-        animateAccFills(el);
-    }
 
     function renderDifficultyAccuracy(tests) {
         const el = document.getElementById('difficultyAccList');
@@ -1266,13 +1472,15 @@
         /* Darker as it gets harder. Difficulty is not a data series, so it
            reads as a neutral ramp between the two brand colors. */
         const COLORS = { Easy: '#9a9a9a', Medium: '#6b6b6b', Hard: '#1e1e1e' };
+        const shareMax = Math.max(...stats.map(e => e.missed));
         el.innerHTML = stats.map(e => accRowHTML({
             name: e.key,
             accuracy: e.accuracy,
             correct: e.correct,
             total: e.total,
             missed: e.missed,
-            color: COLORS[e.key] || RW_COLOR
+            color: COLORS[e.key] || RW_COLOR,
+            shareMax
         })).join('');
         animateAccFills(el);
     }
@@ -1432,27 +1640,29 @@
 
             document.getElementById('bestValue').textContent = `${best.scoresEstimated ? '~' : ''}${bestTot}`;
             document.getElementById('bestUnit').textContent  = '/ 1600';
-            document.getElementById('bestMeta').textContent  =
-                `${best.testName || 'Practice test'} · ${fmtDate(best.date)}`;
 
             document.getElementById('countValue').textContent = filtered.length;
             document.getElementById('countUnit').textContent  = filtered.length === 1 ? 'test' : 'tests';
-            document.getElementById('avgMeta').textContent    =
-                `avg ${anyEst ? '~' : ''}${avgTot} / 1600` +
-                (partial ? ` · ${partial} section-only excluded` : '');
+
+            document.getElementById('avgValue').textContent = `${anyEst ? '~' : ''}${avgTot}`;
+            document.getElementById('avgUnit').textContent  = '/ 1600';
+            document.getElementById('avgMeta').textContent  =
+                partial ? `${partial} section-only excluded` : '';
         } else if (filtered.length > 0) {
             document.getElementById('bestValue').textContent  = '—';
             document.getElementById('bestUnit').textContent   = '';
-            document.getElementById('bestMeta').textContent   = 'No full tests in range';
             document.getElementById('countValue').textContent = filtered.length;
             document.getElementById('countUnit').textContent  = filtered.length === 1 ? 'test' : 'tests';
+            document.getElementById('avgValue').textContent   = '—';
+            document.getElementById('avgUnit').textContent    = '';
             document.getElementById('avgMeta').textContent    = 'section-only';
         } else {
             document.getElementById('bestValue').textContent  = '—';
             document.getElementById('bestUnit').textContent   = '';
-            document.getElementById('bestMeta').textContent   = '';
             document.getElementById('countValue').textContent = '0';
             document.getElementById('countUnit').textContent  = 'tests';
+            document.getElementById('avgValue').textContent   = '—';
+            document.getElementById('avgUnit').textContent    = '';
             document.getElementById('avgMeta').textContent    = '';
         }
 
@@ -1461,7 +1671,6 @@
         renderChart(filtered, currentFilter, allSessions);
         renderTimeLeftChart(filtered);
         renderBreakdown(filtered);
-        renderDomainAccuracy(filtered);
         renderDifficultyAccuracy(filtered);
         renderErrorPatterns(filtered);
         renderSkillProgress(filtered);
@@ -1531,7 +1740,100 @@
         document.querySelectorAll('.filter-btn').forEach(btn =>
             btn.classList.toggle('active', btn.dataset.filter === f));
         document.getElementById('dateRangeBar').classList.toggle('visible', f === 'custom');
+        updateFilterIndicator(true);
         render();
+    }
+
+    /* ── Filter-bar sliding pill — same mechanic as the top-nav indicator:
+       a dark pill glides beneath the buttons while a white text duplicate is
+       revealed under it via a clip-path driven by the same left/width, so
+       each label turns white continuously as the pill slides over it. ── */
+    function alignFilterRevealLabels() {
+        const bar    = document.getElementById('filterBar');
+        const reveal = bar && bar.querySelector('.filter-pill-reveal');
+        if (!bar || !reveal) return;
+        const btns   = Array.from(bar.querySelectorAll('.filter-btn'));
+        const labels = Array.from(reveal.querySelectorAll('.filter-pill-label'));
+        const revealRect = reveal.getBoundingClientRect();
+        btns.forEach((btn, i) => {
+            const label = labels[i];
+            if (!label) return;
+            const btnRect = btn.getBoundingClientRect();
+            label.style.left  = `${btnRect.left - revealRect.left}px`;
+            label.style.width = `${btnRect.width}px`;
+        });
+    }
+
+    function positionFilterIndicator(btnEl, animate) {
+        const wrap      = document.querySelector('.filter-bar-wrap');
+        const bar       = document.getElementById('filterBar');
+        const indicator = document.querySelector('.filter-pill-indicator');
+        const reveal    = bar && bar.querySelector('.filter-pill-reveal');
+        if (!wrap || !bar || !indicator || !btnEl) return;
+
+        const btnRect  = btnEl.getBoundingClientRect();
+        const wrapRect = wrap.getBoundingClientRect();
+        const barRect  = bar.getBoundingClientRect();
+
+        const left   = btnRect.left - wrapRect.left;
+        const width  = btnRect.width;
+        const top    = barRect.top - wrapRect.top;
+        const height = barRect.height;
+
+        if (!animate) {
+            indicator.classList.add('no-transition');
+            if (reveal) reveal.classList.add('no-transition');
+        }
+        indicator.style.left   = `${left}px`;
+        indicator.style.width  = `${width}px`;
+        indicator.style.top    = `${top}px`;
+        indicator.style.height = `${height}px`;
+
+        if (reveal) {
+            const revealRect  = reveal.getBoundingClientRect();
+            const revealLeft  = btnRect.left - revealRect.left;
+            const rightInset  = revealRect.width - revealLeft - width;
+            reveal.style.clipPath = `inset(0 ${Math.max(0, rightInset)}px 0 ${Math.max(0, revealLeft)}px)`;
+        }
+
+        if (!animate) {
+            void indicator.offsetWidth;
+            indicator.classList.remove('no-transition');
+            if (reveal) { void reveal.offsetWidth; reveal.classList.remove('no-transition'); }
+        }
+    }
+
+    function updateFilterIndicator(animate) {
+        const activeBtn = document.querySelector('#filterBar .filter-btn.active');
+        if (activeBtn) positionFilterIndicator(activeBtn, animate);
+    }
+
+    function setupFilterDrag() {
+        const bar = document.getElementById('filterBar');
+        if (!bar) return;
+        let isDown = false, startX = 0, startScroll = 0, dragged = false;
+
+        bar.addEventListener('mousedown', (e) => {
+            isDown = true;
+            dragged = false;
+            bar.classList.add('dragging');
+            startX = e.pageX;
+            startScroll = bar.scrollLeft;
+        });
+        window.addEventListener('mouseup', () => {
+            isDown = false;
+            bar.classList.remove('dragging');
+        });
+        window.addEventListener('mousemove', (e) => {
+            if (!isDown) return;
+            const delta = e.pageX - startX;
+            if (Math.abs(delta) > 4) dragged = true;
+            bar.scrollLeft = startScroll - delta;
+        });
+        bar.addEventListener('click', (e) => {
+            if (dragged) { e.preventDefault(); e.stopPropagation(); }
+        }, true);
+        bar.addEventListener('scroll', () => updateFilterIndicator(false));
     }
 
     async function deleteTest(id) {
@@ -1619,9 +1921,20 @@
             if (reveal) { void reveal.offsetWidth; reveal.classList.remove('no-transition'); }
         }
     }
+    let navIndicatorReady = false;
     function updateNavIndicator() {
         const activePill = document.querySelector('.nav-pill.active');
         if (!activePill) return;
+
+        // Only the very first call (right after this page loaded) should decide
+        // whether to animate in from the previous tab. Later calls — the
+        // font-swap re-measure, a window resize — must NOT re-run that check:
+        // sessionStorage's prevHref was already updated by the first call, so
+        // it would look like "no change" and snap the pill straight to its
+        // target, cancelling the slide almost before it starts.
+        if (navIndicatorReady) { positionIndicator(activePill, true); return; }
+        navIndicatorReady = true;
+
         const currentHref = activePill.getAttribute('href');
         const prevHref = sessionStorage.getItem('navActiveHref');
 
@@ -1678,18 +1991,127 @@
         }, true);
     }
 
+    /* ── Bottom-nav sliding pill (mobile) — same mechanic as the top-nav
+       indicator: a dark pill glides beneath the active tab while a white
+       icon+label duplicate is revealed under it via a clip-path driven by
+       the same left/top/width/height, so the tab turns white continuously
+       as the pill arrives instead of flipping the instant it becomes
+       .active. ── */
+    function alignBnRevealItems() {
+        const bar    = document.querySelector('.bottom-nav');
+        const reveal = bar && bar.querySelector('.bn-reveal');
+        if (!bar || !reveal) return;
+        const pills  = Array.from(bar.querySelectorAll('.bn-pill'));
+        const items  = Array.from(reveal.querySelectorAll('.bn-reveal-item'));
+        const revealRect = reveal.getBoundingClientRect();
+        pills.forEach((pill, i) => {
+            const item = items[i];
+            if (!item) return;
+            const r = pill.getBoundingClientRect();
+            item.style.left   = `${r.left - revealRect.left}px`;
+            item.style.top    = `${r.top - revealRect.top}px`;
+            item.style.width  = `${r.width}px`;
+            item.style.height = `${r.height}px`;
+        });
+    }
+
+    function positionBnIndicator(pillEl, animate) {
+        const bar       = document.querySelector('.bottom-nav');
+        const indicator = document.querySelector('.bn-indicator');
+        const reveal    = bar && bar.querySelector('.bn-reveal');
+        if (!bar || !indicator || !pillEl) return;
+
+        const pillRect = pillEl.getBoundingClientRect();
+        const barRect  = bar.getBoundingClientRect();
+
+        const left   = pillRect.left - barRect.left;
+        const top    = pillRect.top - barRect.top;
+        const width  = pillRect.width;
+        const height = pillRect.height;
+
+        if (!animate) {
+            indicator.classList.add('no-transition');
+            if (reveal) reveal.classList.add('no-transition');
+        }
+        indicator.style.left   = `${left}px`;
+        indicator.style.top    = `${top}px`;
+        indicator.style.width  = `${width}px`;
+        indicator.style.height = `${height}px`;
+
+        if (reveal) {
+            const revealRect  = reveal.getBoundingClientRect();
+            const revealLeft  = pillRect.left - revealRect.left;
+            const revealTop   = pillRect.top - revealRect.top;
+            const rightInset  = revealRect.width - revealLeft - width;
+            const bottomInset = revealRect.height - revealTop - height;
+            reveal.style.clipPath =
+                `inset(${Math.max(0, revealTop)}px ${Math.max(0, rightInset)}px ${Math.max(0, bottomInset)}px ${Math.max(0, revealLeft)}px)`;
+        }
+
+        if (!animate) {
+            void indicator.offsetWidth;
+            indicator.classList.remove('no-transition');
+            if (reveal) { void reveal.offsetWidth; reveal.classList.remove('no-transition'); }
+        }
+    }
+
+    let bnIndicatorReady = false;
+    function updateBnIndicator() {
+        const activeItem = document.querySelector('.bn-item.active');
+        const activePill = activeItem && activeItem.querySelector('.bn-pill');
+        if (!activeItem || !activePill) return;
+
+        // Same first-call-only guard as updateNavIndicator — later calls (font
+        // swap, resize) must not re-run the previous-tab comparison below.
+        if (bnIndicatorReady) { positionBnIndicator(activePill, true); return; }
+        bnIndicatorReady = true;
+
+        const currentHref = activeItem.getAttribute('href');
+        const prevHref = sessionStorage.getItem('bnActiveHref');
+
+        if (prevHref && prevHref !== currentHref) {
+            const prevItem = Array.from(document.querySelectorAll('.bn-item'))
+                .find(p => p.getAttribute('href') === prevHref);
+            const prevPill = prevItem && prevItem.querySelector('.bn-pill');
+            if (prevPill) {
+                positionBnIndicator(prevPill, false);
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => positionBnIndicator(activePill, true));
+                });
+            } else {
+                positionBnIndicator(activePill, false);
+            }
+        } else {
+            positionBnIndicator(activePill, false);
+        }
+        sessionStorage.setItem('bnActiveHref', currentHref);
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         populateSkillTrendSelect();
         render();
         alignRevealLabels();
         updateNavIndicator();
-        window.addEventListener('resize', () => { alignRevealLabels(); updateNavIndicator(); });
         setupNavDrag();
+        alignFilterRevealLabels();
+        updateFilterIndicator(false);
+        setupFilterDrag();
+        alignBnRevealItems();
+        updateBnIndicator();
+        window.addEventListener('resize', () => {
+            alignRevealLabels(); updateNavIndicator();
+            alignFilterRevealLabels(); updateFilterIndicator(false);
+            alignBnRevealItems(); updateBnIndicator();
+        });
         // Re-measure once the web font actually finishes loading — at DOMContentLoaded
         // it's often still using a fallback font, so the initial measurement can be
         // slightly off from where the real pills land once Inter swaps in.
         if (document.fonts && document.fonts.ready) {
-            document.fonts.ready.then(() => { alignRevealLabels(); updateNavIndicator(); });
+            document.fonts.ready.then(() => {
+                alignRevealLabels(); updateNavIndicator();
+                alignFilterRevealLabels(); updateFilterIndicator(false);
+                alignBnRevealItems(); updateBnIndicator();
+            });
         }
     });
     window.addEventListener('sat:synced', () => render());

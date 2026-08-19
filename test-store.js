@@ -741,6 +741,37 @@ const SAT_TESTS = (() => {
             });
     }
 
+    /* Slope of a value over time, expressed per week, via ordinary least-
+     * squares on (day offset, value). Used for "score increase / week" next
+     * to a score-over-time chart — the chart's own x-axis is irregular test
+     * dates, not evenly spaced bars, so a per-bar slope would misrepresent a
+     * cluster of tests taken a day apart the same as ones a month apart.
+     * Returns null when there's nothing to fit a line to (fewer than two
+     * dated points, or every point falls on the same day). */
+    function weeklyTrend(points) {
+        const pts = points
+            .filter(p => p && p.value != null && p.date)
+            .map(p => ({ t: new Date(p.date).getTime(), v: p.value }))
+            .filter(p => !isNaN(p.t));
+        if (pts.length < 2) return null;
+
+        const t0 = pts[0].t;
+        const xs = pts.map(p => (p.t - t0) / 86400000); // days since first point
+        const ys = pts.map(p => p.v);
+        const n  = xs.length;
+        const xMean = xs.reduce((a, b) => a + b, 0) / n;
+        const yMean = ys.reduce((a, b) => a + b, 0) / n;
+
+        let num = 0, den = 0;
+        for (let i = 0; i < n; i++) {
+            num += (xs[i] - xMean) * (ys[i] - yMean);
+            den += (xs[i] - xMean) ** 2;
+        }
+        if (den === 0) return null; // every point on the same day — no time axis to fit
+
+        return (num / den) * 7; // points per week
+    }
+
     /* How a summary's score should be written. A full test scores out of 1600;
      * a section-only test scores out of 800 and says which section, rather than
      * padding the missing half with a zero. */
@@ -762,7 +793,7 @@ const SAT_TESTS = (() => {
         pullDetails,
 
         skillStats, domainStats, moduleStats, difficultyStats,
-        errorPatternStats, skillTrend
+        errorPatternStats, skillTrend, weeklyTrend
     };
 })();
 

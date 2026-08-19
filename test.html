@@ -271,75 +271,103 @@
 
 <!-- Bottom nav (mobile) -->
 <nav class="bottom-nav" aria-label="Primary navigation">
-    <a href="home.html" class="bn-item" aria-label="Home">
+    <a href="home.html" class="bn-item" aria-label="Home"><span class="bn-pill">
         <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
             <path d="M3 10.5L12 3l9 7.5V21a1 1 0 01-1 1H4a1 1 0 01-1-1V10.5z"/>
             <path d="M9 22V12h6v10"/>
         </svg>
         <span class="bn-label">Home</span>
-    </a>
-    <a href="log.html" class="bn-item" aria-label="Log Session">
+    </span></a>
+    <a href="log.html" class="bn-item" aria-label="Log Session"><span class="bn-pill">
         <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="9"/>
             <line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
         </svg>
         <span class="bn-label">Log</span>
-    </a>
-    <a href="history.html" class="bn-item" aria-label="Session History">
+    </span></a>
+    <a href="history.html" class="bn-item" aria-label="Session History"><span class="bn-pill">
         <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/>
         </svg>
         <span class="bn-label">Study</span>
-    </a>
-    <a href="test.html" class="bn-item active" aria-current="page" aria-label="Log Test">
+    </span></a>
+    <a href="test.html" class="bn-item active" aria-current="page" aria-label="Log Test"><span class="bn-pill">
         <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
             <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
             <rect x="9" y="3" width="6" height="4" rx="1"/>
             <line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/>
         </svg>
         <span class="bn-label">Tests</span>
-    </a>
-    <a href="test-history.html" class="bn-item" aria-label="Test History">
+    </span></a>
+    <a href="test-history.html" class="bn-item" aria-label="Test History"><span class="bn-pill">
         <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
             <rect x="3" y="11" width="4" height="10" rx="1"/>
             <rect x="10" y="6" width="4" height="15" rx="1"/>
             <rect x="17" y="3" width="4" height="18" rx="1"/>
         </svg>
         <span class="bn-label">T. Hist</span>
-    </a>
-    <a href="sync.html" class="bn-item" aria-label="Sync">
+    </span></a>
+    <a href="sync.html" class="bn-item" aria-label="Sync"><span class="bn-pill">
         <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
             <path d="M2.5 2v6h6"/><path d="M21.5 22v-6h-6"/>
             <path d="M22 11.5A10 10 0 003.2 7.2"/>
             <path d="M2 12.5a10 10 0 0018.8 4.3"/>
         </svg>
         <span class="bn-label">Sync</span>
-    </a>
+    </span></a>
+    <div class="bn-reveal" aria-hidden="true">
+        <span class="bn-reveal-item">
+            <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 10.5L12 3l9 7.5V21a1 1 0 01-1 1H4a1 1 0 01-1-1V10.5z"/>
+                <path d="M9 22V12h6v10"/>
+            </svg>
+            <span class="bn-label">Home</span>
+        </span>
+        <span class="bn-reveal-item">
+            <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="9"/>
+                <line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
+            </svg>
+            <span class="bn-label">Log</span>
+        </span>
+        <span class="bn-reveal-item">
+            <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="9"/>
+                <polyline points="12 7 12 12 15 14"/>
+            </svg>
+            <span class="bn-label">Study</span>
+        </span>
+        <span class="bn-reveal-item">
+            <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
+                <rect x="9" y="3" width="6" height="4" rx="1"/>
+                <line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/>
+            </svg>
+            <span class="bn-label">Tests</span>
+        </span>
+        <span class="bn-reveal-item">
+            <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="4" height="10" rx="1"/>
+                <rect x="10" y="6" width="4" height="15" rx="1"/>
+                <rect x="17" y="3" width="4" height="18" rx="1"/>
+            </svg>
+            <span class="bn-label">T. Hist</span>
+        </span>
+        <span class="bn-reveal-item">
+            <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2.5 2v6h6"/><path d="M21.5 22v-6h-6"/>
+                <path d="M22 11.5A10 10 0 003.2 7.2"/>
+                <path d="M2 12.5a10 10 0 0018.8 4.3"/>
+            </svg>
+            <span class="bn-label">Sync</span>
+        </span>
+    </div>
+    <span class="bn-indicator" aria-hidden="true"></span>
 </nav>
 
 <div class="page">
     <p class="page-eyebrow">SAT Prep</p>
     <h1 class="page-title">Log a Test</h1>
-
-    <!-- Last test card -->
-    <div class="last-test-card" id="lastTestCard" style="display:none">
-        <div class="last-test-header">
-            <p class="card-eyebrow">Most recent test</p>
-            <p class="card-date" id="lastTestDate"></p>
-        </div>
-        <div class="score-display-row">
-            <span class="score-total-big" id="lastTotal"></span>
-            <span class="score-denom-big" id="lastDenom">/ 1600</span>
-        </div>
-        <div class="score-sub-row">
-            <span class="score-sub-item"><span>R&amp;W </span><span id="lastRW"></span></span>
-            <span class="score-sub-item"><span>Math </span><span id="lastMath"></span></span>
-            <span class="score-sub-item" id="lastAccWrap" style="display:none"><span>Accuracy </span><span id="lastAcc"></span></span>
-        </div>
-        <p class="missed-section-label" id="lastMissedLabel">Missed</p>
-        <div class="missed-tags" id="lastMissedTags"></div>
-        <div class="tl-card-row" id="lastTimeLeft" style="display:none"></div>
-    </div>
 
     <!-- Mode switch -->
     <div class="mode-switch" id="modeSwitch" data-mode="auto" role="tablist" aria-label="Test entry mode">
@@ -585,10 +613,6 @@
         if (h > 0 && m > 0) return `${h} hr ${m} min`;
         if (h > 0) return `${h} hr`;
         return `${m} min`;
-    }
-    function fmtTimeLeft(secs) {
-        if (secs == null) return null;
-        return `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}`;
     }
     function pct(n) { return n == null ? '—' : `${Math.round(n * 100)}%`; }
 
@@ -1183,56 +1207,6 @@
         document.getElementById('mSession').innerHTML    = html;
     }
 
-    async function renderLastTest() {
-        const tests = await SAT_TESTS.getSummaries();
-        const card  = document.getElementById('lastTestCard');
-        if (!tests.length) { card.style.display = 'none'; return; }
-
-        const t = tests[0];
-        card.style.display = '';
-        document.getElementById('lastTestDate').textContent = fmtDate(t.date);
-        const sl = SAT_TESTS.scoreLabel(t);
-        document.getElementById('lastTotal').textContent = sl.value;
-        document.getElementById('lastDenom').textContent = sl.denom;
-        document.getElementById('lastRW').textContent   = t.rwScore;
-        document.getElementById('lastMath').textContent = t.mathScore;
-
-        const accWrap = document.getElementById('lastAccWrap');
-        if (t.hasDetail && t.accuracy != null) {
-            accWrap.style.display = '';
-            document.getElementById('lastAcc').textContent = `${t.correctCount}/${t.totalQuestions} · ${pct(t.accuracy)}`;
-        } else {
-            accWrap.style.display = 'none';
-        }
-
-        const missedLabel = document.getElementById('lastMissedLabel');
-        const missedTags  = document.getElementById('lastMissedTags');
-        const questions   = t.missedQuestions || [];
-
-        if (!questions.length) {
-            missedLabel.style.display = 'none';
-            missedTags.innerHTML = '<span class="no-missed">No questions missed</span>';
-        } else {
-            missedLabel.style.display = '';
-            // Group by skill so a 30-miss test doesn't render 30 chips.
-            const bySkill = {};
-            questions.forEach(q => { bySkill[q.skill] = (bySkill[q.skill] || 0) + 1; });
-            missedTags.innerHTML = Object.entries(bySkill)
-                .sort((a, b) => b[1] - a[1])
-                .slice(0, 10)
-                .map(([skill, n]) => `<span class="missed-tag">${esc(skill)}${n > 1 ? ` ×${n}` : ''}</span>`)
-                .join('');
-        }
-
-        const tlRow = document.getElementById('lastTimeLeft');
-        const tl    = t.timeLeft || {};
-        const parts = T.MODULES
-            .filter(m => tl[m.slug] != null)
-            .map(m => `<span class="tl-card-item"><strong>${esc(m.short)}</strong> ${fmtTimeLeft(tl[m.slug])} left</span>`);
-        tlRow.innerHTML = parts.join('');
-        tlRow.style.display = parts.length ? '' : 'none';
-    }
-
     async function renderTestList() {
         const tests  = await SAT_TESTS.getSummaries();
         const listEl = document.getElementById('testList');
@@ -1290,7 +1264,6 @@
     }
 
     async function refresh() {
-        await renderLastTest();
         await renderTestList();
     }
 
@@ -1366,9 +1339,20 @@
             if (reveal) { void reveal.offsetWidth; reveal.classList.remove('no-transition'); }
         }
     }
+    let navIndicatorReady = false;
     function updateNavIndicator() {
         const activePill = document.querySelector('.nav-pill.active');
         if (!activePill) return;
+
+        // Only the very first call (right after this page loaded) should decide
+        // whether to animate in from the previous tab. Later calls — the
+        // font-swap re-measure, a window resize — must NOT re-run that check:
+        // sessionStorage's prevHref was already updated by the first call, so
+        // it would look like "no change" and snap the pill straight to its
+        // target, cancelling the slide almost before it starts.
+        if (navIndicatorReady) { positionIndicator(activePill, true); return; }
+        navIndicatorReady = true;
+
         const currentHref = activePill.getAttribute('href');
         const prevHref = sessionStorage.getItem('navActiveHref');
 
@@ -1422,6 +1406,102 @@
         }, true);
     }
 
+    /* ── Bottom-nav sliding pill (mobile) — same mechanic as the top-nav
+       indicator: a dark pill glides beneath the active tab while a white
+       icon+label duplicate is revealed under it via a clip-path driven by
+       the same left/top/width/height, so the tab turns white continuously
+       as the pill arrives instead of flipping the instant it becomes
+       .active. ── */
+    function alignBnRevealItems() {
+        const bar    = document.querySelector('.bottom-nav');
+        const reveal = bar && bar.querySelector('.bn-reveal');
+        if (!bar || !reveal) return;
+        const pills  = Array.from(bar.querySelectorAll('.bn-pill'));
+        const items  = Array.from(reveal.querySelectorAll('.bn-reveal-item'));
+        const revealRect = reveal.getBoundingClientRect();
+        pills.forEach((pill, i) => {
+            const item = items[i];
+            if (!item) return;
+            const r = pill.getBoundingClientRect();
+            item.style.left   = `${r.left - revealRect.left}px`;
+            item.style.top    = `${r.top - revealRect.top}px`;
+            item.style.width  = `${r.width}px`;
+            item.style.height = `${r.height}px`;
+        });
+    }
+
+    function positionBnIndicator(pillEl, animate) {
+        const bar       = document.querySelector('.bottom-nav');
+        const indicator = document.querySelector('.bn-indicator');
+        const reveal    = bar && bar.querySelector('.bn-reveal');
+        if (!bar || !indicator || !pillEl) return;
+
+        const pillRect = pillEl.getBoundingClientRect();
+        const barRect  = bar.getBoundingClientRect();
+
+        const left   = pillRect.left - barRect.left;
+        const top    = pillRect.top - barRect.top;
+        const width  = pillRect.width;
+        const height = pillRect.height;
+
+        if (!animate) {
+            indicator.classList.add('no-transition');
+            if (reveal) reveal.classList.add('no-transition');
+        }
+        indicator.style.left   = `${left}px`;
+        indicator.style.top    = `${top}px`;
+        indicator.style.width  = `${width}px`;
+        indicator.style.height = `${height}px`;
+
+        if (reveal) {
+            const revealRect  = reveal.getBoundingClientRect();
+            const revealLeft  = pillRect.left - revealRect.left;
+            const revealTop   = pillRect.top - revealRect.top;
+            const rightInset  = revealRect.width - revealLeft - width;
+            const bottomInset = revealRect.height - revealTop - height;
+            reveal.style.clipPath =
+                `inset(${Math.max(0, revealTop)}px ${Math.max(0, rightInset)}px ${Math.max(0, bottomInset)}px ${Math.max(0, revealLeft)}px)`;
+        }
+
+        if (!animate) {
+            void indicator.offsetWidth;
+            indicator.classList.remove('no-transition');
+            if (reveal) { void reveal.offsetWidth; reveal.classList.remove('no-transition'); }
+        }
+    }
+
+    let bnIndicatorReady = false;
+    function updateBnIndicator() {
+        const activeItem = document.querySelector('.bn-item.active');
+        const activePill = activeItem && activeItem.querySelector('.bn-pill');
+        if (!activeItem || !activePill) return;
+
+        // Same first-call-only guard as updateNavIndicator — later calls (font
+        // swap, resize) must not re-run the previous-tab comparison below.
+        if (bnIndicatorReady) { positionBnIndicator(activePill, true); return; }
+        bnIndicatorReady = true;
+
+        const currentHref = activeItem.getAttribute('href');
+        const prevHref = sessionStorage.getItem('bnActiveHref');
+
+        if (prevHref && prevHref !== currentHref) {
+            const prevItem = Array.from(document.querySelectorAll('.bn-item'))
+                .find(p => p.getAttribute('href') === prevHref);
+            const prevPill = prevItem && prevItem.querySelector('.bn-pill');
+            if (prevPill) {
+                positionBnIndicator(prevPill, false);
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => positionBnIndicator(activePill, true));
+                });
+            } else {
+                positionBnIndicator(activePill, false);
+            }
+        } else {
+            positionBnIndicator(activePill, false);
+        }
+        sessionStorage.setItem('bnActiveHref', currentHref);
+    }
+
     /* ══════════════════════════════════════════
        Boot
     ══════════════════════════════════════════ */
@@ -1443,12 +1523,20 @@
 
         alignRevealLabels();
         updateNavIndicator();
-        window.addEventListener('resize', () => { alignRevealLabels(); updateNavIndicator(); });
+        alignBnRevealItems();
+        updateBnIndicator();
+        window.addEventListener('resize', () => {
+            alignRevealLabels(); updateNavIndicator();
+            alignBnRevealItems(); updateBnIndicator();
+        });
         setupNavDrag();
         // Re-measure once the web font finishes loading — at DOMContentLoaded the
         // pills are often still laid out in a fallback face.
         if (document.fonts && document.fonts.ready) {
-            document.fonts.ready.then(() => { alignRevealLabels(); updateNavIndicator(); });
+            document.fonts.ready.then(() => {
+                alignRevealLabels(); updateNavIndicator();
+                alignBnRevealItems(); updateBnIndicator();
+            });
         }
     });
 

@@ -86,50 +86,98 @@
 
 <!-- Bottom nav (mobile) -->
 <nav class="bottom-nav" aria-label="Primary navigation">
-    <a href="home.html" class="bn-item" aria-label="Home">
+    <a href="home.html" class="bn-item" aria-label="Home"><span class="bn-pill">
         <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
             <path d="M3 10.5L12 3l9 7.5V21a1 1 0 01-1 1H4a1 1 0 01-1-1V10.5z"/>
             <path d="M9 22V12h6v10"/>
         </svg>
         <span class="bn-label">Home</span>
-    </a>
-    <a href="log.html" class="bn-item" aria-label="Log Session">
+    </span></a>
+    <a href="log.html" class="bn-item" aria-label="Log Session"><span class="bn-pill">
         <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="9"/>
             <line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
         </svg>
         <span class="bn-label">Log</span>
-    </a>
-    <a href="history.html" class="bn-item active" aria-current="page" aria-label="Session History">
+    </span></a>
+    <a href="history.html" class="bn-item active" aria-current="page" aria-label="Session History"><span class="bn-pill">
         <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/>
         </svg>
         <span class="bn-label">Study</span>
-    </a>
-    <a href="test.html" class="bn-item" aria-label="Log Test">
+    </span></a>
+    <a href="test.html" class="bn-item" aria-label="Log Test"><span class="bn-pill">
         <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
             <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
             <rect x="9" y="3" width="6" height="4" rx="1"/>
             <line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/>
         </svg>
         <span class="bn-label">Tests</span>
-    </a>
-    <a href="test-history.html" class="bn-item" aria-label="Test History">
+    </span></a>
+    <a href="test-history.html" class="bn-item" aria-label="Test History"><span class="bn-pill">
         <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
             <rect x="3" y="11" width="4" height="10" rx="1"/>
             <rect x="10" y="6" width="4" height="15" rx="1"/>
             <rect x="17" y="3" width="4" height="18" rx="1"/>
         </svg>
         <span class="bn-label">T. Hist</span>
-    </a>
-    <a href="sync.html" class="bn-item" aria-label="Sync">
+    </span></a>
+    <a href="sync.html" class="bn-item" aria-label="Sync"><span class="bn-pill">
         <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
             <path d="M2.5 2v6h6"/><path d="M21.5 22v-6h-6"/>
             <path d="M22 11.5A10 10 0 003.2 7.2"/>
             <path d="M2 12.5a10 10 0 0018.8 4.3"/>
         </svg>
         <span class="bn-label">Sync</span>
-    </a>
+    </span></a>
+    <div class="bn-reveal" aria-hidden="true">
+        <span class="bn-reveal-item">
+            <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 10.5L12 3l9 7.5V21a1 1 0 01-1 1H4a1 1 0 01-1-1V10.5z"/>
+                <path d="M9 22V12h6v10"/>
+            </svg>
+            <span class="bn-label">Home</span>
+        </span>
+        <span class="bn-reveal-item">
+            <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="9"/>
+                <line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
+            </svg>
+            <span class="bn-label">Log</span>
+        </span>
+        <span class="bn-reveal-item">
+            <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="9"/>
+                <polyline points="12 7 12 12 15 14"/>
+            </svg>
+            <span class="bn-label">Study</span>
+        </span>
+        <span class="bn-reveal-item">
+            <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
+                <rect x="9" y="3" width="6" height="4" rx="1"/>
+                <line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/>
+            </svg>
+            <span class="bn-label">Tests</span>
+        </span>
+        <span class="bn-reveal-item">
+            <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="4" height="10" rx="1"/>
+                <rect x="10" y="6" width="4" height="15" rx="1"/>
+                <rect x="17" y="3" width="4" height="18" rx="1"/>
+            </svg>
+            <span class="bn-label">T. Hist</span>
+        </span>
+        <span class="bn-reveal-item">
+            <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2.5 2v6h6"/><path d="M21.5 22v-6h-6"/>
+                <path d="M22 11.5A10 10 0 003.2 7.2"/>
+                <path d="M2 12.5a10 10 0 0018.8 4.3"/>
+            </svg>
+            <span class="bn-label">Sync</span>
+        </span>
+    </div>
+    <span class="bn-indicator" aria-hidden="true"></span>
 </nav>
 
 <div class="page page--wide">
@@ -161,12 +209,24 @@
     </div>
 
     <!-- Filter bar -->
-    <div class="filter-bar">
-        <button class="filter-btn active" data-filter="all"    onclick="setFilter('all')">All time</button>
-        <button class="filter-btn"        data-filter="month"  onclick="setFilter('month')">This month</button>
-        <button class="filter-btn"        data-filter="week"   onclick="setFilter('week')">This week</button>
-        <button class="filter-btn"        data-filter="day"    onclick="setFilter('day')">Today</button>
-        <button class="filter-btn"        data-filter="custom" onclick="setFilter('custom')">Custom</button>
+    <div class="filter-bar-wrap">
+        <div class="filter-bar" id="filterBar">
+            <button class="filter-btn active" data-filter="all"    onclick="setFilter('all')">All time</button>
+            <button class="filter-btn"        data-filter="year"   onclick="setFilter('year')">This year</button>
+            <button class="filter-btn"        data-filter="month"  onclick="setFilter('month')">This month</button>
+            <button class="filter-btn"        data-filter="week"   onclick="setFilter('week')">This week</button>
+            <button class="filter-btn"        data-filter="day"    onclick="setFilter('day')">Today</button>
+            <button class="filter-btn"        data-filter="custom" onclick="setFilter('custom')">Custom</button>
+            <div class="filter-pill-reveal" aria-hidden="true">
+                <span class="filter-pill-label">All time</span>
+                <span class="filter-pill-label">This year</span>
+                <span class="filter-pill-label">This month</span>
+                <span class="filter-pill-label">This week</span>
+                <span class="filter-pill-label">Today</span>
+                <span class="filter-pill-label">Custom</span>
+            </div>
+        </div>
+        <span class="filter-pill-indicator" aria-hidden="true"></span>
     </div>
     <div class="date-range-bar" id="dateRangeBar">
         <input type="date" class="date-range-input" id="dateFrom" onchange="applyCustomRange()">
@@ -179,7 +239,7 @@
         <div class="chart-header">
             <span class="chart-title" id="chartTitle">Monthly overview</span>
             <div style="display:flex;align-items:center;gap:0.875rem;">
-                <span class="score-legend" id="scoreLegend"><span class="score-legend-pip"></span>Score</span>
+                <span class="score-legend" id="scoreLegend"><span class="score-legend-pip"></span>Focus Score</span>
                 <span class="chart-peak-label" id="chartPeak"></span>
             </div>
         </div>
@@ -220,6 +280,10 @@
             const weekStart = new Date(today);
             weekStart.setDate(today.getDate() - ((dow + 6) % 7));
             return sessions.filter(s => new Date(s.date) >= weekStart);
+        }
+        if (filter === 'year') {
+            const yearStart = new Date(now.getFullYear(), 0, 1);
+            return sessions.filter(s => new Date(s.date) >= yearStart);
         }
         if (filter === 'month') {
             const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -324,6 +388,42 @@
             const maxVal  = Math.max(...slice.map(b => b.value));
             const peakBar = slice.find(b => b.value === maxVal);
             return { bars: slice, title: 'Monthly overview', peak: peakBar && maxVal > 0 ? peakBar : null };
+        }
+
+        if (filter === 'year') {
+            const yr = now.getFullYear();
+            const yearStart = new Date(yr, 0, 1);
+            // Bucket by calendar week (Mon–Sun), starting from the Monday on
+            // or before Jan 1 so the first week isn't a truncated partial one.
+            const dow0 = yearStart.getDay();
+            const firstMonday = new Date(yr, 0, 1 - ((dow0 + 6) % 7));
+            firstMonday.setHours(0, 0, 0, 0);
+
+            const msPerWeek  = 7 * 24 * 60 * 60 * 1000;
+            const weekCount  = Math.floor((now - firstMonday) / msPerWeek) + 1;
+            const bars = [];
+            for (let i = 0; i < weekCount; i++) {
+                const wStart = new Date(firstMonday.getTime() + i * msPerWeek);
+                bars.push({ label: `${MONTHS[wStart.getMonth()]} ${wStart.getDate()}`, value: 0, score: null });
+            }
+
+            const scoreMap = {}, scoreCnt = {};
+            allSessions.forEach(s => {
+                const d = new Date(s.date);
+                if (d < firstMonday) return;
+                const idx = Math.floor((d - firstMonday) / msPerWeek);
+                if (idx < 0 || idx >= bars.length) return;
+                bars[idx].value += s.duration;
+                if (s.score != null) {
+                    scoreMap[idx] = (scoreMap[idx] || 0) + s.score;
+                    scoreCnt[idx] = (scoreCnt[idx] || 0) + 1;
+                }
+            });
+            bars.forEach((b, i) => { b.score = scoreCnt[i] ? +(scoreMap[i] / scoreCnt[i]).toFixed(1) : null; });
+
+            const maxVal  = Math.max(...bars.map(b => b.value));
+            const peakBar = bars.find(b => b.value === maxVal);
+            return { bars, title: `${yr} · week by week`, peak: peakBar && maxVal > 0 ? peakBar : null };
         }
 
         if (filter === 'month') {
@@ -612,6 +712,7 @@
             const msg = currentFilter === 'day'    ? 'No sessions logged today'
                       : currentFilter === 'week'   ? 'No sessions this week'
                       : currentFilter === 'month'  ? 'No sessions this month'
+                      : currentFilter === 'year'   ? 'No sessions this year'
                       : currentFilter === 'custom' ? 'No sessions in this date range'
                       : 'No sessions yet';
             listEl.innerHTML = `
@@ -664,7 +765,100 @@
         document.querySelectorAll('.filter-btn').forEach(btn =>
             btn.classList.toggle('active', btn.dataset.filter === f));
         document.getElementById('dateRangeBar').classList.toggle('visible', f === 'custom');
+        updateFilterIndicator(true);
         render();
+    }
+
+    /* ── Filter-bar sliding pill — same mechanic as the top-nav indicator:
+       a dark pill glides beneath the buttons while a white text duplicate is
+       revealed under it via a clip-path driven by the same left/width, so
+       each label turns white continuously as the pill slides over it. ── */
+    function alignFilterRevealLabels() {
+        const bar    = document.getElementById('filterBar');
+        const reveal = bar && bar.querySelector('.filter-pill-reveal');
+        if (!bar || !reveal) return;
+        const btns   = Array.from(bar.querySelectorAll('.filter-btn'));
+        const labels = Array.from(reveal.querySelectorAll('.filter-pill-label'));
+        const revealRect = reveal.getBoundingClientRect();
+        btns.forEach((btn, i) => {
+            const label = labels[i];
+            if (!label) return;
+            const btnRect = btn.getBoundingClientRect();
+            label.style.left  = `${btnRect.left - revealRect.left}px`;
+            label.style.width = `${btnRect.width}px`;
+        });
+    }
+
+    function positionFilterIndicator(btnEl, animate) {
+        const wrap      = document.querySelector('.filter-bar-wrap');
+        const bar       = document.getElementById('filterBar');
+        const indicator = document.querySelector('.filter-pill-indicator');
+        const reveal    = bar && bar.querySelector('.filter-pill-reveal');
+        if (!wrap || !bar || !indicator || !btnEl) return;
+
+        const btnRect  = btnEl.getBoundingClientRect();
+        const wrapRect = wrap.getBoundingClientRect();
+        const barRect  = bar.getBoundingClientRect();
+
+        const left   = btnRect.left - wrapRect.left;
+        const width  = btnRect.width;
+        const top    = barRect.top - wrapRect.top;
+        const height = barRect.height;
+
+        if (!animate) {
+            indicator.classList.add('no-transition');
+            if (reveal) reveal.classList.add('no-transition');
+        }
+        indicator.style.left   = `${left}px`;
+        indicator.style.width  = `${width}px`;
+        indicator.style.top    = `${top}px`;
+        indicator.style.height = `${height}px`;
+
+        if (reveal) {
+            const revealRect  = reveal.getBoundingClientRect();
+            const revealLeft  = btnRect.left - revealRect.left;
+            const rightInset  = revealRect.width - revealLeft - width;
+            reveal.style.clipPath = `inset(0 ${Math.max(0, rightInset)}px 0 ${Math.max(0, revealLeft)}px)`;
+        }
+
+        if (!animate) {
+            void indicator.offsetWidth;
+            indicator.classList.remove('no-transition');
+            if (reveal) { void reveal.offsetWidth; reveal.classList.remove('no-transition'); }
+        }
+    }
+
+    function updateFilterIndicator(animate) {
+        const activeBtn = document.querySelector('#filterBar .filter-btn.active');
+        if (activeBtn) positionFilterIndicator(activeBtn, animate);
+    }
+
+    function setupFilterDrag() {
+        const bar = document.getElementById('filterBar');
+        if (!bar) return;
+        let isDown = false, startX = 0, startScroll = 0, dragged = false;
+
+        bar.addEventListener('mousedown', (e) => {
+            isDown = true;
+            dragged = false;
+            bar.classList.add('dragging');
+            startX = e.pageX;
+            startScroll = bar.scrollLeft;
+        });
+        window.addEventListener('mouseup', () => {
+            isDown = false;
+            bar.classList.remove('dragging');
+        });
+        window.addEventListener('mousemove', (e) => {
+            if (!isDown) return;
+            const delta = e.pageX - startX;
+            if (Math.abs(delta) > 4) dragged = true;
+            bar.scrollLeft = startScroll - delta;
+        });
+        bar.addEventListener('click', (e) => {
+            if (dragged) { e.preventDefault(); e.stopPropagation(); }
+        }, true);
+        bar.addEventListener('scroll', () => updateFilterIndicator(false));
     }
 
     async function deleteSession(id) {
@@ -753,9 +947,20 @@
             if (reveal) { void reveal.offsetWidth; reveal.classList.remove('no-transition'); }
         }
     }
+    let navIndicatorReady = false;
     function updateNavIndicator() {
         const activePill = document.querySelector('.nav-pill.active');
         if (!activePill) return;
+
+        // Only the very first call (right after this page loaded) should decide
+        // whether to animate in from the previous tab. Later calls — the
+        // font-swap re-measure, a window resize — must NOT re-run that check:
+        // sessionStorage's prevHref was already updated by the first call, so
+        // it would look like "no change" and snap the pill straight to its
+        // target, cancelling the slide almost before it starts.
+        if (navIndicatorReady) { positionIndicator(activePill, true); return; }
+        navIndicatorReady = true;
+
         const currentHref = activePill.getAttribute('href');
         const prevHref = sessionStorage.getItem('navActiveHref');
 
@@ -812,17 +1017,126 @@
         }, true);
     }
 
+    /* ── Bottom-nav sliding pill (mobile) — same mechanic as the top-nav
+       indicator: a dark pill glides beneath the active tab while a white
+       icon+label duplicate is revealed under it via a clip-path driven by
+       the same left/top/width/height, so the tab turns white continuously
+       as the pill arrives instead of flipping the instant it becomes
+       .active. ── */
+    function alignBnRevealItems() {
+        const bar    = document.querySelector('.bottom-nav');
+        const reveal = bar && bar.querySelector('.bn-reveal');
+        if (!bar || !reveal) return;
+        const pills  = Array.from(bar.querySelectorAll('.bn-pill'));
+        const items  = Array.from(reveal.querySelectorAll('.bn-reveal-item'));
+        const revealRect = reveal.getBoundingClientRect();
+        pills.forEach((pill, i) => {
+            const item = items[i];
+            if (!item) return;
+            const r = pill.getBoundingClientRect();
+            item.style.left   = `${r.left - revealRect.left}px`;
+            item.style.top    = `${r.top - revealRect.top}px`;
+            item.style.width  = `${r.width}px`;
+            item.style.height = `${r.height}px`;
+        });
+    }
+
+    function positionBnIndicator(pillEl, animate) {
+        const bar       = document.querySelector('.bottom-nav');
+        const indicator = document.querySelector('.bn-indicator');
+        const reveal    = bar && bar.querySelector('.bn-reveal');
+        if (!bar || !indicator || !pillEl) return;
+
+        const pillRect = pillEl.getBoundingClientRect();
+        const barRect  = bar.getBoundingClientRect();
+
+        const left   = pillRect.left - barRect.left;
+        const top    = pillRect.top - barRect.top;
+        const width  = pillRect.width;
+        const height = pillRect.height;
+
+        if (!animate) {
+            indicator.classList.add('no-transition');
+            if (reveal) reveal.classList.add('no-transition');
+        }
+        indicator.style.left   = `${left}px`;
+        indicator.style.top    = `${top}px`;
+        indicator.style.width  = `${width}px`;
+        indicator.style.height = `${height}px`;
+
+        if (reveal) {
+            const revealRect  = reveal.getBoundingClientRect();
+            const revealLeft  = pillRect.left - revealRect.left;
+            const revealTop   = pillRect.top - revealRect.top;
+            const rightInset  = revealRect.width - revealLeft - width;
+            const bottomInset = revealRect.height - revealTop - height;
+            reveal.style.clipPath =
+                `inset(${Math.max(0, revealTop)}px ${Math.max(0, rightInset)}px ${Math.max(0, bottomInset)}px ${Math.max(0, revealLeft)}px)`;
+        }
+
+        if (!animate) {
+            void indicator.offsetWidth;
+            indicator.classList.remove('no-transition');
+            if (reveal) { void reveal.offsetWidth; reveal.classList.remove('no-transition'); }
+        }
+    }
+
+    let bnIndicatorReady = false;
+    function updateBnIndicator() {
+        const activeItem = document.querySelector('.bn-item.active');
+        const activePill = activeItem && activeItem.querySelector('.bn-pill');
+        if (!activeItem || !activePill) return;
+
+        // Same first-call-only guard as updateNavIndicator — later calls (font
+        // swap, resize) must not re-run the previous-tab comparison below.
+        if (bnIndicatorReady) { positionBnIndicator(activePill, true); return; }
+        bnIndicatorReady = true;
+
+        const currentHref = activeItem.getAttribute('href');
+        const prevHref = sessionStorage.getItem('bnActiveHref');
+
+        if (prevHref && prevHref !== currentHref) {
+            const prevItem = Array.from(document.querySelectorAll('.bn-item'))
+                .find(p => p.getAttribute('href') === prevHref);
+            const prevPill = prevItem && prevItem.querySelector('.bn-pill');
+            if (prevPill) {
+                positionBnIndicator(prevPill, false);
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => positionBnIndicator(activePill, true));
+                });
+            } else {
+                positionBnIndicator(activePill, false);
+            }
+        } else {
+            positionBnIndicator(activePill, false);
+        }
+        sessionStorage.setItem('bnActiveHref', currentHref);
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         render();
         alignRevealLabels();
         updateNavIndicator();
         setupNavDrag();
-        window.addEventListener('resize', () => { alignRevealLabels(); updateNavIndicator(); });
+        alignFilterRevealLabels();
+        updateFilterIndicator(false);
+        setupFilterDrag();
+        alignBnRevealItems();
+        updateBnIndicator();
+        window.addEventListener('resize', () => {
+            alignRevealLabels(); updateNavIndicator();
+            alignFilterRevealLabels(); updateFilterIndicator(false);
+            alignBnRevealItems(); updateBnIndicator();
+        });
         // Re-measure once the web font actually finishes loading — at DOMContentLoaded
         // it's often still using a fallback font, so the initial measurement can be
         // slightly off from where the real pills land once Inter swaps in.
         if (document.fonts && document.fonts.ready) {
-            document.fonts.ready.then(() => { alignRevealLabels(); updateNavIndicator(); });
+            document.fonts.ready.then(() => {
+                alignRevealLabels(); updateNavIndicator();
+                alignFilterRevealLabels(); updateFilterIndicator(false);
+                alignBnRevealItems(); updateBnIndicator();
+            });
         }
     });
     window.addEventListener('sat:synced', () => render());

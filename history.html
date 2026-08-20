@@ -27,7 +27,7 @@
         /* ── Session list ── */
         .session-list-header {
             display: grid;
-            grid-template-columns: 1fr auto auto;
+            grid-template-columns: 1fr auto auto auto;
             gap: 1rem;
             padding: 0 0 0.75rem;
             border-bottom: 1px solid var(--gray);
@@ -36,7 +36,7 @@
 
         .session-row {
             display: grid;
-            grid-template-columns: 1fr auto auto;
+            grid-template-columns: 1fr auto auto auto;
             gap: 1rem;
             align-items: center;
             padding: 1.125rem 0;
@@ -71,6 +71,7 @@
         <a href="history.html"      class="nav-pill active">Session History</a>
         <a href="test.html"         class="nav-pill">Log Test</a>
         <a href="test-history.html" class="nav-pill">Test History</a>
+        <a href="practice.html"     class="nav-pill">Practice Now</a>
         <a href="sync.html"         class="nav-pill">Sync</a>
         <div class="nav-pill-reveal" aria-hidden="true">
             <span class="nav-pill-label">Home</span>
@@ -78,6 +79,7 @@
             <span class="nav-pill-label">Session History</span>
             <span class="nav-pill-label">Log Test</span>
             <span class="nav-pill-label">Test History</span>
+            <span class="nav-pill-label">Practice Now</span>
             <span class="nav-pill-label">Sync</span>
         </div>
     </div>
@@ -121,6 +123,12 @@
             <rect x="17" y="3" width="4" height="18" rx="1"/>
         </svg>
         <span class="bn-label">T. Hist</span>
+    </span></a>
+    <a href="practice.html" class="bn-item" aria-label="Practice Now"><span class="bn-pill">
+        <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="0.75" fill="currentColor" stroke="none"/>
+        </svg>
+        <span class="bn-label">Practice</span>
     </span></a>
     <a href="sync.html" class="bn-item" aria-label="Sync"><span class="bn-pill">
         <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
@@ -167,6 +175,12 @@
                 <rect x="17" y="3" width="4" height="18" rx="1"/>
             </svg>
             <span class="bn-label">T. Hist</span>
+        </span>
+        <span class="bn-reveal-item">
+            <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="0.75" fill="currentColor" stroke="none"/>
+            </svg>
+            <span class="bn-label">Practice</span>
         </span>
         <span class="bn-reveal-item">
             <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
@@ -734,6 +748,7 @@
                 <span class="list-col-label">Date</span>
                 <span class="list-col-label right">Duration</span>
                 <span></span>
+                <span></span>
             </div>`;
 
         filtered.forEach(s => {
@@ -749,6 +764,11 @@
                         <div class="session-duration-sub">${fmtDurationShort(s.duration)}</div>
                         ${s.score != null ? `<div class="session-score-sub">${s.score}/10</div>` : ''}
                     </div>
+                    <button class="edit-btn" onclick="editSession('${s.id}')" title="Edit">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 20h4L19 9a2.1 2.1 0 00-3-3L5 17v3z"/><path d="M14.5 6.5l3 3"/>
+                        </svg>
+                    </button>
                     <button class="delete-btn" onclick="deleteSession('${s.id}')" title="Delete">
                         <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
                             <line x1="1" y1="1" x2="11" y2="11"/><line x1="11" y1="1" x2="1" y2="11"/>
@@ -867,6 +887,10 @@
         await SAT_STORAGE.saveSessions(sessions);
         render();
         showToast('Session removed');
+    }
+
+    function editSession(id) {
+        location.href = 'log.html?edit=' + encodeURIComponent(id);
     }
 
     let toastTimer = null;

@@ -28,7 +28,7 @@
         input[type="date"], input[type="text"].field-input {
             font-family: 'Inter', sans-serif;
             font-weight: 400;
-            font-size: 0.9375rem;
+            font-size: clamp(1rem, 3vw, 1.125rem); /* floor at 1rem = 16px, prevents iOS auto-zoom */
             letter-spacing: -0.03em;
             color: var(--dark);
             background: var(--off-white);
@@ -134,7 +134,7 @@
         /* ── Session select ── */
         .session-select {
             font-family: 'Inter', sans-serif;
-            font-size: 0.9375rem;
+            font-size: clamp(1rem, 3vw, 1.125rem); /* floor at 1rem = 16px, prevents iOS auto-zoom */
             font-weight: 400;
             letter-spacing: -0.02em;
             color: var(--dark);
@@ -222,11 +222,11 @@
 
         /* ── Test list ── */
         .list-header {
-            display: grid; grid-template-columns: 1fr auto auto; gap: 1rem;
+            display: grid; grid-template-columns: 1fr auto auto auto; gap: 1rem;
             padding: 0 0 0.75rem; border-bottom: 1px solid var(--gray); margin-bottom: 0.25rem;
         }
         .test-row {
-            display: grid; grid-template-columns: 1fr auto auto; gap: 1rem;
+            display: grid; grid-template-columns: 1fr auto auto auto; gap: 1rem;
             align-items: start; padding: 1.125rem 0; border-bottom: 1px solid var(--off-white);
         }
         .test-row:last-child { border-bottom: none; }
@@ -256,6 +256,7 @@
         <a href="history.html"      class="nav-pill">Session History</a>
         <a href="test.html"         class="nav-pill active">Log Test</a>
         <a href="test-history.html" class="nav-pill">Test History</a>
+        <a href="practice.html"     class="nav-pill">Practice Now</a>
         <a href="sync.html"         class="nav-pill">Sync</a>
         <div class="nav-pill-reveal" aria-hidden="true">
             <span class="nav-pill-label">Home</span>
@@ -263,6 +264,7 @@
             <span class="nav-pill-label">Session History</span>
             <span class="nav-pill-label">Log Test</span>
             <span class="nav-pill-label">Test History</span>
+            <span class="nav-pill-label">Practice Now</span>
             <span class="nav-pill-label">Sync</span>
         </div>
     </div>
@@ -306,6 +308,12 @@
             <rect x="17" y="3" width="4" height="18" rx="1"/>
         </svg>
         <span class="bn-label">T. Hist</span>
+    </span></a>
+    <a href="practice.html" class="bn-item" aria-label="Practice Now"><span class="bn-pill">
+        <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="0.75" fill="currentColor" stroke="none"/>
+        </svg>
+        <span class="bn-label">Practice</span>
     </span></a>
     <a href="sync.html" class="bn-item" aria-label="Sync"><span class="bn-pill">
         <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
@@ -355,6 +363,12 @@
         </span>
         <span class="bn-reveal-item">
             <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="0.75" fill="currentColor" stroke="none"/>
+            </svg>
+            <span class="bn-label">Practice</span>
+        </span>
+        <span class="bn-reveal-item">
+            <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M2.5 2v6h6"/><path d="M21.5 22v-6h-6"/>
                 <path d="M22 11.5A10 10 0 003.2 7.2"/>
                 <path d="M2 12.5a10 10 0 0018.8 4.3"/>
@@ -368,6 +382,11 @@
 <div class="page">
     <p class="page-eyebrow">SAT Prep</p>
     <h1 class="page-title">Log a Test</h1>
+
+    <div class="edit-banner" id="editBanner">
+        <span class="edit-banner-text">Editing <strong id="editBannerName"></strong></span>
+        <a href="test-history.html" class="edit-banner-cancel">Cancel</a>
+    </div>
 
     <!-- Mode switch -->
     <div class="mode-switch" id="modeSwitch" data-mode="auto" role="tablist" aria-label="Test entry mode">
@@ -560,7 +579,7 @@
             <div class="msg-list" id="manualMessages"></div>
 
             <div class="btn-row">
-                <button class="btn-submit" onclick="saveManual()">Save Test</button>
+                <button class="btn-submit" id="mSaveBtn" onclick="saveManual()">Save Test</button>
                 <button class="btn-ghost" onclick="resetManual()">Clear</button>
             </div>
         </div>
@@ -855,11 +874,102 @@
        State mirrors the canonical record: a module list with counts, plus a
        detail map keyed "<module>:<question number>" for every missed question.
     ══════════════════════════════════════════ */
+    const DEFAULT_MOD_COUNTS = { rw1: 27, rw2: 27, m1: 22, m2: 22 };
     const manual = {
         format: 'full_test',
-        counts: { rw1: 27, rw2: 27, m1: 22, m2: 22 },
+        counts: { ...DEFAULT_MOD_COUNTS },
         missed: {}   // "rw1:5" → { domain, skill, difficulty, errorPattern, format, userAnswer, correctAnswer }
     };
+
+    /* ══════════════════════════════════════════
+       Edit mode — populate the manual form from an existing saved test
+       (reached via editTest(id) on this page, or test.html?edit=<id> from
+       test-history.html) so saving updates that record in place instead of
+       creating a new one.
+    ══════════════════════════════════════════ */
+    let editingTestId = null;
+    let editingCreatedAt = null;
+
+    function populateManualFormFromRecord(record) {
+        const meta = record.test_metadata;
+
+        manual.format = meta.test_format || 'full_test';
+        const counts = { ...DEFAULT_MOD_COUNTS };
+        const missed = {};
+        (record.questions || []).forEach(q => {
+            const slug = q.module_slug;
+            if (!(slug in counts)) return;
+            counts[slug] = Math.max(counts[slug], q.question_number);
+            if (!q.is_correct) {
+                missed[`${slug}:${q.question_number}`] = {
+                    domain: q.domain || '',
+                    skill: q.skill || '',
+                    difficulty: q.difficulty || 'Medium',
+                    errorPattern: q.error_pattern || '',
+                    format: q.question_format || 'multiple_choice',
+                    userAnswer: q.user_answer || '',
+                    correctAnswer: q.correct_answer || ''
+                };
+            }
+        });
+        manual.counts = counts;
+        manual.missed = missed;
+
+        document.getElementById('mTestName').value = meta.test_name || '';
+        document.getElementById('mSource').value   = meta.source_name || '';
+        document.getElementById('mDate').value     = meta.date_completed || todayValue();
+        document.getElementById('mRw').value       = meta.scores.estimated ? '' : (meta.scores.rw ?? '');
+        document.getElementById('mMath').value     = meta.scores.estimated ? '' : (meta.scores.math ?? '');
+        document.getElementById('mSession').value  = record.app.linked_session_id || '';
+
+        clearTimeLeft('mtl');
+        const tl = record.app.time_left_seconds || {};
+        T.MODULES.forEach(m => {
+            const secs = tl[m.slug];
+            if (secs != null) {
+                document.getElementById(`mtl-${m.slug}-min`).value = Math.floor(secs / 60);
+                document.getElementById(`mtl-${m.slug}-sec`).value = secs % 60;
+            }
+        });
+
+        document.querySelectorAll('#mFormat .fmt-btn').forEach(b =>
+            b.classList.toggle('active', b.dataset.fmt === manual.format));
+
+        showMessages('manualMessages', []);
+        renderModCounts();
+        renderGrids();
+        renderMissedList();
+        renderManualTotals();
+    }
+
+    function enterTestEditMode(record) {
+        editingTestId    = record.app.id;
+        editingCreatedAt = record.app.created_at || null;
+
+        populateManualFormFromRecord(record);
+        setMode('manual');
+        document.getElementById('modeSwitch').style.display = 'none';
+        document.getElementById('editBanner').classList.add('visible');
+        document.getElementById('editBannerName').textContent =
+            record.test_metadata.test_name || 'Practice test';
+        document.getElementById('mSaveBtn').textContent = 'Update Test';
+
+        document.querySelector('.page').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function exitTestEditMode() {
+        editingTestId    = null;
+        editingCreatedAt = null;
+        document.getElementById('modeSwitch').style.display = '';
+        document.getElementById('editBanner').classList.remove('visible');
+        document.getElementById('mSaveBtn').textContent = 'Save Test';
+    }
+
+    async function editTest(id) {
+        const record = await SAT_TESTS.getDetail(id);
+        if (!record) { showToast('Could not find that test to edit'); return; }
+        enterTestEditMode(record);
+    }
 
     function activeModules() {
         return T.MODULES.filter(m =>
@@ -1118,7 +1228,7 @@
         const rwIn   = document.getElementById('mRw').value.trim();
         const mathIn = document.getElementById('mMath').value.trim();
 
-        return SAT_TESTS.normalize({
+        const raw = {
             schema_version: '1.0',
             test_metadata: {
                 test_name:    document.getElementById('mTestName').value.trim() || 'Practice test',
@@ -1128,7 +1238,15 @@
                 test_format:  manual.format
             },
             questions
-        }, {
+        };
+        // Editing an existing test: carry its id/created-at forward so
+        // SAT_TESTS.save() overwrites the record in place instead of minting
+        // a new one.
+        if (editingTestId) {
+            raw.app = { id: editingTestId, created_at: editingCreatedAt || undefined };
+        }
+
+        return SAT_TESTS.normalize(raw, {
             inputMode: 'manual',
             date: document.getElementById('mDate').value,
             scores: { rw: rwIn === '' ? null : parseInt(rwIn), math: mathIn === '' ? null : parseInt(mathIn) },
@@ -1163,14 +1281,22 @@
         showMessages('manualMessages', []);
         const summary = await SAT_TESTS.save(buildManualRecord());
         const sl = SAT_TESTS.scoreLabel(summary);
+
+        if (editingTestId) {
+            showToast(`${summary.testName} updated — ${sl.value} ${sl.denom}`);
+            setTimeout(() => { location.href = 'test-history.html'; }, 650);
+            return;
+        }
+
         resetManual();
         await refresh();
         showToast(`${summary.testName} saved — ${sl.value} ${sl.denom}`);
     }
 
     function resetManual() {
+        exitTestEditMode();
         manual.format = 'full_test';
-        manual.counts = { rw1: 27, rw2: 27, m1: 22, m2: 22 };
+        manual.counts = { ...DEFAULT_MOD_COUNTS };
         manual.missed = {};
         document.getElementById('mTestName').value = '';
         document.getElementById('mSource').value   = '';
@@ -1221,6 +1347,7 @@
                 <span class="list-col-label">Test</span>
                 <span class="list-col-label right">Score</span>
                 <span></span>
+                <span></span>
             </div>`;
 
         const rows = tests.map(t => {
@@ -1245,6 +1372,11 @@
                         <div class="test-score-main">${sl.value} <span style="color:var(--gray-text);font-size:12px;font-weight:400">${sl.denom}</span></div>
                         <div class="test-score-sub">${sl.note ? esc(sl.note) : `R&amp;W ${t.rwScore} &nbsp;·&nbsp; Math ${t.mathScore}`}</div>
                     </div>
+                    <button class="edit-btn" onclick="editTest('${esc(t.id)}')" title="Edit">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 20h4L19 9a2.1 2.1 0 00-3-3L5 17v3z"/><path d="M14.5 6.5l3 3"/>
+                        </svg>
+                    </button>
                     <button class="delete-btn" onclick="deleteTest('${esc(t.id)}')" title="Delete">
                         <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
                             <line x1="1" y1="1" x2="11" y2="11"/><line x1="11" y1="1" x2="1" y2="11"/>
@@ -1520,6 +1652,13 @@
 
         await loadSessions();
         await refresh();
+
+        const editId = new URLSearchParams(location.search).get('edit');
+        if (editId) {
+            const record = await SAT_TESTS.getDetail(editId);
+            if (record) enterTestEditMode(record);
+            else showToast('Could not find that test to edit');
+        }
 
         alignRevealLabels();
         updateNavIndicator();

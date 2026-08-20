@@ -43,7 +43,7 @@
         }
         .skill-trend-select {
             font-family: 'Inter', sans-serif;
-            font-size: 0.8125rem;
+            font-size: clamp(1rem, 3vw, 1.125rem); /* floor at 1rem = 16px, prevents iOS auto-zoom */
             font-weight: 500;
             letter-spacing: -0.01em;
             color: var(--dark);
@@ -51,6 +51,9 @@
             border: 1.5px solid var(--gray);
             border-radius: 6.25rem;
             padding: 0.5625rem 2.125rem 0.5625rem 1rem;
+            min-height: 2.75rem;   /* 44px touch target */
+            display: inline-flex;
+            align-items: center;
             outline: none;
             cursor: pointer;
             transition: border-color 0.15s;
@@ -209,6 +212,20 @@
             font-size: 0.625rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase;
             color: var(--gray-mid); margin: 0.25rem 0 0.375rem;
         }
+        .priority-list--rest[hidden] { display: none; }
+        .priority-list-toggle {
+            display: flex; align-items: center; gap: 0.3125rem;
+            width: 100%;
+            margin-top: 0.5rem;
+            padding: 0.625rem 0.125rem 0.125rem;
+            border: none; background: none; cursor: pointer;
+            font-family: inherit; font-size: 0.75rem; font-weight: 500;
+            color: var(--gray-text);
+            -webkit-tap-highlight-color: transparent;
+        }
+        @media (hover: hover) and (pointer: fine) { .priority-list-toggle:hover { color: var(--dark); } }
+        .priority-list-toggle-arrow { display: inline-block; transition: transform 0.2s ease; font-size: 0.625rem; }
+        .priority-list-toggle.is-open .priority-list-toggle-arrow { transform: rotate(180deg); }
 
         /* ── Section totals breakdown ── */
         .section-breakdown {
@@ -286,7 +303,7 @@
         /* ── Test list rows ── */
         .test-row {
             display: grid;
-            grid-template-columns: 1fr auto auto;
+            grid-template-columns: 1fr auto auto auto;
             gap: 1rem;
             align-items: start;
             padding: 1.125rem 0;
@@ -542,6 +559,7 @@
         <a href="history.html"      class="nav-pill">Session History</a>
         <a href="test.html"         class="nav-pill">Log Test</a>
         <a href="test-history.html" class="nav-pill active">Test History</a>
+        <a href="practice.html"     class="nav-pill">Practice Now</a>
         <a href="sync.html"         class="nav-pill">Sync</a>
         <div class="nav-pill-reveal" aria-hidden="true">
             <span class="nav-pill-label">Home</span>
@@ -549,6 +567,7 @@
             <span class="nav-pill-label">Session History</span>
             <span class="nav-pill-label">Log Test</span>
             <span class="nav-pill-label">Test History</span>
+            <span class="nav-pill-label">Practice Now</span>
             <span class="nav-pill-label">Sync</span>
         </div>
     </div>
@@ -592,6 +611,12 @@
             <rect x="17" y="3" width="4" height="18" rx="1"/>
         </svg>
         <span class="bn-label">T. Hist</span>
+    </span></a>
+    <a href="practice.html" class="bn-item" aria-label="Practice Now"><span class="bn-pill">
+        <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="0.75" fill="currentColor" stroke="none"/>
+        </svg>
+        <span class="bn-label">Practice</span>
     </span></a>
     <a href="sync.html" class="bn-item" aria-label="Sync"><span class="bn-pill">
         <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
@@ -638,6 +663,12 @@
                 <rect x="17" y="3" width="4" height="18" rx="1"/>
             </svg>
             <span class="bn-label">T. Hist</span>
+        </span>
+        <span class="bn-reveal-item">
+            <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="0.75" fill="currentColor" stroke="none"/>
+            </svg>
+            <span class="bn-label">Practice</span>
         </span>
         <span class="bn-reveal-item">
             <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
@@ -695,12 +726,14 @@
             <button class="filter-btn"        data-filter="week"   onclick="setFilter('week')">This week</button>
             <button class="filter-btn"        data-filter="day"    onclick="setFilter('day')">Today</button>
             <button class="filter-btn"        data-filter="custom" onclick="setFilter('custom')">Custom</button>
+            <button class="filter-btn"        data-filter="tests"  onclick="setFilter('tests')">Select tests</button>
             <div class="filter-pill-reveal" aria-hidden="true">
                 <span class="filter-pill-label">All time</span>
                 <span class="filter-pill-label">This month</span>
                 <span class="filter-pill-label">This week</span>
                 <span class="filter-pill-label">Today</span>
                 <span class="filter-pill-label">Custom</span>
+                <span class="filter-pill-label">Select tests</span>
             </div>
         </div>
         <span class="filter-pill-indicator" aria-hidden="true"></span>
@@ -709,6 +742,13 @@
         <input type="date" class="date-range-input" id="dateFrom" onchange="applyCustomRange()">
         <span class="date-range-sep">→</span>
         <input type="date" class="date-range-input" id="dateTo" onchange="applyCustomRange()">
+    </div>
+    <div class="test-select-bar" id="testSelectBar">
+        <div class="test-select-actions">
+            <button type="button" class="test-select-action-btn" onclick="selectAllTests()">Select all</button>
+            <button type="button" class="test-select-action-btn" onclick="clearTestSelection()">Clear</button>
+        </div>
+        <div class="test-select-list" id="testSelectList"></div>
     </div>
 
     <!-- Score chart -->
@@ -847,6 +887,8 @@
     let currentFilter = 'all';
     let customFrom = null, customTo = null;
     let lastFiltered = [];
+    let lastAllTests = [];
+    let selectedTestIds = new Set();
 
     const MONTHS      = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     const MONTHS_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -933,6 +975,7 @@
                 return true;
             });
         }
+        if (filter === 'tests') return tests.filter(t => selectedTestIds.has(t.id));
         return tests;
     }
 
@@ -941,6 +984,45 @@
         const tv = document.getElementById('dateTo').value;
         customFrom = fv ? new Date(fv + 'T00:00:00') : null;
         customTo   = tv ? new Date(tv + 'T23:59:59') : null;
+        render();
+    }
+
+    /* Individual-test picker underneath the "Select tests" filter — a
+       checklist (not a date range) since the tests someone wants to compare
+       aren't necessarily contiguous. Rebuilt from the full unfiltered list
+       every render so it stays in sync with newly logged/deleted tests, but
+       checked state lives in selectedTestIds so it survives that rebuild. */
+    function renderTestSelectPanel(all) {
+        const listEl = document.getElementById('testSelectList');
+        if (!listEl) return;
+        if (all.length === 0) {
+            listEl.innerHTML = '<p class="test-select-empty">No practice tests logged yet</p>';
+            return;
+        }
+        listEl.innerHTML = all.map(t => {
+            const sl      = SAT_TESTS.scoreLabel(t);
+            const checked = selectedTestIds.has(t.id) ? 'checked' : '';
+            return `<label class="test-select-item">
+                <input type="checkbox" ${checked} onchange="toggleTestSelect('${esc(t.id)}', this.checked)">
+                <span class="test-select-name">${esc(t.testName || 'Practice test')} &middot; ${fmtDateShort(t.date)}</span>
+                <span class="test-select-meta">${esc(sl.value)}${sl.denom ? ' ' + esc(sl.denom) : ''}</span>
+            </label>`;
+        }).join('');
+    }
+
+    function toggleTestSelect(id, checked) {
+        if (checked) selectedTestIds.add(id);
+        else selectedTestIds.delete(id);
+        render();
+    }
+
+    function selectAllTests() {
+        lastAllTests.forEach(t => selectedTestIds.add(t.id));
+        render();
+    }
+
+    function clearTestSelection() {
+        selectedTestIds.clear();
         render();
     }
 
@@ -1297,9 +1379,9 @@
 
     /* Focus on: every missed-skill category, ranked by a recency-weighted
        score (most recent misses count more — see home.html's priority card,
-       which this mirrors). The chart plots every category up top; the full
-       ranked list of every category follows underneath, top 5 highlighted
-       in both. */
+       which this mirrors). The chart plots every category, top 5 highlighted.
+       The list below defaults to the top 5; the rest sit in a collapsed
+       section toggled by a "show more" control underneath. */
     function renderBreakdown(tests) {
         const listEl = document.getElementById('breakdownList');
         const metaEl = document.getElementById('breakdownMeta');
@@ -1328,11 +1410,13 @@
             return;
         }
 
-        const maxW = all[0][1];
+        const maxW  = all[0][1];
+        const top5  = all.slice(0, 5);
+        const rest  = all.slice(5);
 
         metaEl.textContent = `${all.length} skill${all.length !== 1 ? 's' : ''}`;
 
-        const rowsHTML = all.map(([key], i) => {
+        const rowHTML = ([key], i) => {
             const sc    = skillSecs[key] || { rw: 0, math: 0 };
             const isTop = i < 5;
             const color = isTop ? (sc.rw >= sc.math ? RW_COLOR : MATH_COLOR) : 'var(--gray-mid)';
@@ -1345,7 +1429,10 @@
                 <span class="priority-row-name">${esc(skillLabels[key])}</span>
                 <span class="priority-row-count">${skillCounts[key]}×</span>
             </div>`;
-        }).join('');
+        };
+
+        const rowsHTML = top5.map(rowHTML).join('');
+        const restHTML = rest.map((e, i) => rowHTML(e, i + 5)).join('');
 
         const barsHTML = all.map(([key, w], i) => {
             const sc    = skillSecs[key] || { rw: 0, math: 0 };
@@ -1360,6 +1447,12 @@
             </div>`;
         }).join('');
 
+        const toggleHTML = rest.length > 0
+            ? `<button type="button" class="priority-list-toggle" id="breakdownToggle" onclick="toggleBreakdownRest()">
+                    Show ${rest.length} more skill${rest.length !== 1 ? 's' : ''} <span class="priority-list-toggle-arrow">&#9662;</span>
+               </button>`
+            : '';
+
         listEl.innerHTML = `
             <div class="priority-body">
                 <div class="priority-chart-wrap">
@@ -1371,8 +1464,10 @@
                 </div>
                 <div>
                     <hr class="priority-list-divider">
-                    <p class="priority-list-label">Every skill, ranked</p>
+                    <p class="priority-list-label">Top 5, ranked</p>
                     <div class="priority-list">${rowsHTML}</div>
+                    <div class="priority-list priority-list--rest" id="breakdownRest" hidden>${restHTML}</div>
+                    ${toggleHTML}
                 </div>
             </div>`;
 
@@ -1381,6 +1476,19 @@
                 b.style.height = b.getAttribute('data-h') + '%';
             });
         }));
+    }
+
+    function toggleBreakdownRest() {
+        const restEl = document.getElementById('breakdownRest');
+        const btn    = document.getElementById('breakdownToggle');
+        if (!restEl || !btn) return;
+        const expanded = restEl.hidden === false;
+        restEl.hidden = expanded;
+        btn.classList.toggle('is-open', !expanded);
+        const count = restEl.children.length;
+        btn.innerHTML = expanded
+            ? `Show ${count} more skill${count !== 1 ? 's' : ''} <span class="priority-list-toggle-arrow">&#9662;</span>`
+            : `Show fewer skills <span class="priority-list-toggle-arrow">&#9662;</span>`;
     }
 
     /* One labeled row per module, sorted low-accuracy-first so the section
@@ -1626,6 +1734,8 @@
         const all      = allTests.sort((a, b) => new Date(b.date) - new Date(a.date));
         const filtered = filterTests(all, currentFilter);
         lastFiltered   = filtered;
+        lastAllTests   = all;
+        renderTestSelectPanel(all);
 
         // Best and average describe full tests only — the same reason
         // buildChartData filters them. Partial tests still show in the list.
@@ -1682,6 +1792,7 @@
                       : currentFilter === 'week'   ? 'No tests this week'
                       : currentFilter === 'month'  ? 'No tests this month'
                       : currentFilter === 'custom' ? 'No tests in this date range'
+                      : currentFilter === 'tests'  ? 'No tests selected'
                       : 'No practice tests yet';
             listEl.innerHTML = `
                 <div class="empty-state">
@@ -1704,6 +1815,7 @@
                 <span class="list-col-label">Test</span>
                 <span class="list-col-label right">Score</span>
                 <span></span>
+                <span></span>
             </div>`;
 
         filtered.forEach(t => {
@@ -1724,6 +1836,11 @@
                         <div class="test-score-main">${sl.value} <span style="color:var(--gray-text);font-size:0.75rem;font-weight:400">${sl.denom}</span></div>
                         <div class="test-score-sub">${sl.note ? esc(sl.note) : `R&amp;W ${t.rwScore} &nbsp;·&nbsp; Math ${t.mathScore}`}</div>
                     </div>
+                    <button class="edit-btn" onclick="editTest('${esc(t.id)}')" title="Edit">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 20h4L19 9a2.1 2.1 0 00-3-3L5 17v3z"/><path d="M14.5 6.5l3 3"/>
+                        </svg>
+                    </button>
                     <button class="delete-btn" onclick="deleteTest('${esc(t.id)}')" title="Delete">
                         <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
                             <line x1="1" y1="1" x2="11" y2="11"/><line x1="11" y1="1" x2="1" y2="11"/>
@@ -1740,6 +1857,7 @@
         document.querySelectorAll('.filter-btn').forEach(btn =>
             btn.classList.toggle('active', btn.dataset.filter === f));
         document.getElementById('dateRangeBar').classList.toggle('visible', f === 'custom');
+        document.getElementById('testSelectBar').classList.toggle('visible', f === 'tests');
         updateFilterIndicator(true);
         render();
     }
@@ -1841,6 +1959,10 @@
         await SAT_TESTS.remove(id);
         render();
         showToast('Test removed');
+    }
+
+    function editTest(id) {
+        location.href = 'test.html?edit=' + encodeURIComponent(id);
     }
 
     let toastTimer = null;

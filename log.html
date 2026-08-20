@@ -198,6 +198,7 @@
         <a href="history.html"      class="nav-pill">Session History</a>
         <a href="test.html"         class="nav-pill">Log Test</a>
         <a href="test-history.html" class="nav-pill">Test History</a>
+        <a href="practice.html"     class="nav-pill">Practice Now</a>
         <a href="sync.html"         class="nav-pill">Sync</a>
         <div class="nav-pill-reveal" aria-hidden="true">
             <span class="nav-pill-label">Home</span>
@@ -205,6 +206,7 @@
             <span class="nav-pill-label">Session History</span>
             <span class="nav-pill-label">Log Test</span>
             <span class="nav-pill-label">Test History</span>
+            <span class="nav-pill-label">Practice Now</span>
             <span class="nav-pill-label">Sync</span>
         </div>
     </div>
@@ -248,6 +250,12 @@
             <rect x="17" y="3" width="4" height="18" rx="1"/>
         </svg>
         <span class="bn-label">T. Hist</span>
+    </span></a>
+    <a href="practice.html" class="bn-item" aria-label="Practice Now"><span class="bn-pill">
+        <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="0.75" fill="currentColor" stroke="none"/>
+        </svg>
+        <span class="bn-label">Practice</span>
     </span></a>
     <a href="sync.html" class="bn-item" aria-label="Sync"><span class="bn-pill">
         <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
@@ -297,6 +305,12 @@
         </span>
         <span class="bn-reveal-item">
             <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="0.75" fill="currentColor" stroke="none"/>
+            </svg>
+            <span class="bn-label">Practice</span>
+        </span>
+        <span class="bn-reveal-item">
+            <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M2.5 2v6h6"/><path d="M21.5 22v-6h-6"/>
                 <path d="M22 11.5A10 10 0 003.2 7.2"/>
                 <path d="M2 12.5a10 10 0 0018.8 4.3"/>
@@ -310,6 +324,11 @@
 <div class="page">
     <p class="page-eyebrow">Log a session</p>
     <h1 class="page-title">How long did<br>you study?</h1>
+
+    <div class="edit-banner" id="editBanner">
+        <span class="edit-banner-text">Editing <strong id="editBannerName"></strong></span>
+        <a href="history.html" class="edit-banner-cancel">Cancel</a>
+    </div>
 
     <div class="form-section">
         <!-- Date + Time Started -->
@@ -361,7 +380,7 @@
         </div>
 
         <div class="action-buttons">
-            <button class="btn-submit" onclick="logSession()">Log Session</button>
+            <button class="btn-submit" id="logSubmitBtn" onclick="logSession()">Log Session</button>
             <a href="history.html" class="btn-view-history" id="viewHistoryBtn" style="display:none;">View Session History</a>
         </div>
     </div>
@@ -415,6 +434,7 @@
 
     /* ── Auto-calculate start time from duration ── */
     function updateStartTime() {
+        if (editingSessionId) return;   // don't jump an edited session's date/time to "now"
         const h = parseInt(document.getElementById('hoursInput').value)   || 0;
         const m = parseInt(document.getElementById('minutesInput').value) || 0;
         const totalMins = h * 60 + m;
@@ -425,6 +445,30 @@
             `${String(start.getHours()).padStart(2,'0')}:${String(start.getMinutes()).padStart(2,'0')}`;
         document.getElementById('dateInput').value =
             `${start.getFullYear()}-${String(start.getMonth()+1).padStart(2,'0')}-${String(start.getDate()).padStart(2,'0')}`;
+    }
+
+    /* ── Edit mode — populate the form from an existing saved session
+       (reached via log.html?edit=<id> from history.html) so logging updates
+       that record in place instead of creating a new one. ── */
+    let editingSessionId = null;
+
+    function populateSessionForm(s) {
+        const d = new Date(s.date);
+        document.getElementById('dateInput').value =
+            `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        document.getElementById('startTimeInput').value =
+            `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+        document.getElementById('hoursInput').value   = Math.floor(s.duration / 3600) || '';
+        document.getElementById('minutesInput').value = Math.floor((s.duration % 3600) / 60) || '';
+        document.getElementById('scoreInput').value   = s.score != null ? s.score : '';
+    }
+
+    function enterSessionEditMode(s) {
+        editingSessionId = s.id;
+        populateSessionForm(s);
+        document.getElementById('editBanner').classList.add('visible');
+        document.getElementById('editBannerName').textContent = fmtDate(s.date);
+        document.getElementById('logSubmitBtn').textContent = 'Update Session';
     }
 
     /* ── Log session ── */
@@ -449,6 +493,17 @@
         const score    = (!isNaN(scoreRaw) && scoreRaw >= 1 && scoreRaw <= 10) ? +scoreRaw.toFixed(1) : null;
 
         const sessions = await SAT_STORAGE.getSessions();
+
+        if (editingSessionId) {
+            const ix = sessions.findIndex(s => s.id === editingSessionId);
+            const updated = { id: editingSessionId, date: date.toISOString(), duration, score };
+            if (ix >= 0) sessions[ix] = updated; else sessions.push(updated);
+            await SAT_STORAGE.saveSessions(sessions);
+            showToast(`Session updated — ${fmtDuration(duration)}`);
+            setTimeout(() => { location.href = 'history.html'; }, 650);
+            return;
+        }
+
         sessions.push({ id: Date.now().toString(), date: date.toISOString(), duration, score });
         await SAT_STORAGE.saveSessions(sessions);
 
@@ -473,6 +528,7 @@
 
     /* ── Save/load form state ── */
     function saveFormState() {
+        if (editingSessionId) return;   // don't clobber the add-session draft while editing
         localStorage.setItem('logForm', JSON.stringify({
             date: document.getElementById('dateInput').value,
             startTime: document.getElementById('startTimeInput').value,
@@ -499,7 +555,18 @@
 
     /* ── Boot ── */
     document.addEventListener('DOMContentLoaded', async () => {
-        loadFormState();
+        const editId = new URLSearchParams(location.search).get('edit');
+        let editSession = null;
+        if (editId) {
+            editSession = (await SAT_STORAGE.getSessions()).find(s => s.id === editId) || null;
+            if (!editSession) showToast('Could not find that session to edit');
+        }
+
+        if (editSession) {
+            enterSessionEditMode(editSession);
+        } else {
+            loadFormState();
+        }
 
         // If no saved date, use today
         if (!document.getElementById('dateInput').value) {
